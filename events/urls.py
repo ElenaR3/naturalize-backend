@@ -3,9 +3,10 @@ from . import views
 
 urlpatterns = [
     path('', views.getRoutes),
-    path('events/', views.getEvents),
-    path('events/create/', views.createEvent),
-    path('events/<int:pk>/update/', views.updateEvent),
-    path('events/<int:pk>/delete/', views.deleteEvent),
-    path('events/<int:pk>/', views.getEvent)
+    path('api/events/', views.getEvents),
+    path('api/mapmarkers/', views.getMapMarkers),
+    path('api/events/create/', views.createEvent),
+    path('api/events/<int:pk>/update/', views.updateEvent),
+    path('api/events/<int:pk>/delete/', views.deleteEvent),
+    path('api/events/<int:pk>/', views.getEvent)
 ]

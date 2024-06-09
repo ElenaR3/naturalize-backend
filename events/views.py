@@ -2,8 +2,8 @@ from functools import partial
 import imp
 from rest_framework.decorators import api_view
 from rest_framework.response import Response 
-from .models import Event
-from .serializers import EventSerializer
+from .models import Event, Location
+from .serializers import EventSerializer, MapMarkerSerializer
 
 # Create your views here.
 @api_view(['GET'])
@@ -24,13 +24,13 @@ def getRoutes(request):
       {
         'Endpoint': '/events/create/',
         'method': 'POST',
-        'body': {'body': ""},
+        'body': {},
         'description': 'Creates a new event with data sent in POST request'
     },
     {
         'Endpoint': '/events/id/update/',
         'method': 'PUT',
-        'body': {'body': ""},
+        'body': {},
         'description': 'Creates an existing event with data sent in POST request'
     },
     {
@@ -41,6 +41,12 @@ def getRoutes(request):
     }
     ]
     return Response(routes)
+
+@api_view(['GET'])
+def getMapMarkers(request):
+    events = Event.objects.all()
+    serializer = MapMarkerSerializer(events, many = True)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 def getEvents(request):
@@ -57,12 +63,19 @@ def getEvent(request, pk):
 @api_view(['POST'])
 def createEvent(request):
     data = request.data
+    location_data = data.get('location')
+
+    latitude = location_data.get('latitude')
+    longitude = location_data.get('longitude')
+
+    # Create a Location instance
+    location = Location.objects.create(latitude=latitude, longitude=longitude, text=location_data.get('text'))
+
     event = Event.objects.create(
-    markerName = data['markerName'],
+    eventName = data['eventName'],
     markerType = data['markerType'],
-    markerDescription = data['markerDescription'],
-    latitude = data['latitude'],
-    longitude = data['longitude'],
+    eventDescription = data['eventDescription'],
+    location=location,
     team = data['team']
     )
 
@@ -72,7 +85,7 @@ def createEvent(request):
 @api_view(['PUT'])
 def updateEvent(request, pk):
     event = Event.objects.get(id=pk)
-    serializer = EventSerializer(event, data=request.data, partial=True)
+    serializer = EventSerializer(event, data=request.data, partial=True) # mora da moze i za site da se smene 
     if serializer.is_valid():
         serializer.save()
     return Response(serializer.data)
@@ -82,3 +95,5 @@ def deleteEvent(request, pk):
     event = Event.objects.get(id=pk)
     event.delete()
     return Response("The event was deleted")
+
+    
