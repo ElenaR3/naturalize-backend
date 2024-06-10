@@ -1,0 +1,1 @@
+web: gunicorn naturalize.wsgi
