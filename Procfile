@@ -1,1 +1,1 @@
-web: gunicorn naturalize.wsgi
+web: gunicorn backend.wsgi
