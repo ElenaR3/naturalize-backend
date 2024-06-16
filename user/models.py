@@ -91,5 +91,14 @@ class UserStreak(models.Model):
     def __str__(self):
         return f"{self.user.username} - Current Streak: {self.current_streak}, Longest Streak: {self.longest_streak}"
 
+class StreakSnapshot(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    season = models.ForeignKey(Season, on_delete=models.CASCADE)
+    weekly_xp = models.PositiveIntegerField(default=0)
+    streak_date = models.DateField()
+    final_rank = models.PositiveIntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.streak_date}: Streak {self.streak_length}, Rank {self.final_rank}"
 
 
