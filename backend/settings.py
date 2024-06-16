@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["https://naturalize-project-3eb8c1c5c73a.herokuapp.com/", "127.0.0.1"]
 
 
 # Application definition
