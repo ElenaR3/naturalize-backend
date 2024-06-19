@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, UserStats, UserStreak
+from .models import CustomUser, WeeklyUserStats, UserStreak
 
 
 class UserSerializer(serializers.ModelSerializer):

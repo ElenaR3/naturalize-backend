@@ -1,10 +1,10 @@
 # Create your views here.
 from django.utils import timezone
-from pstats import Stats, StatsProfile
+from pstats import StatsProfile
 import statistics
 from rest_framework.views import APIView
 
-from user.models import CustomUser, Season, UserStats, UserStreak
+from user.models import CustomUser, WeeklyUserStats, UserStreak, Week
 from .serializers import UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
 from rest_framework.response import Response
 
@@ -23,11 +23,11 @@ class UserStatsView(APIView):
         current_date = timezone.now()
         
         # Find the current season based on the current date
-        current_season = Season.objects.filter(start__lte=current_date, end__gte=current_date).first()
+        current_week = Week.objects.filter(start__lte=current_date, end__gte=current_date).first()
 
-        if current_season:
+        if current_week:
             # Retrieve UserStats data for the user and the current season
-            user_stats = UserStats.objects.filter(user_id=user_id, season=current_season).first()
+            user_stats = WeeklyUserStats.objects.filter(user_id=user_id, season=current_week).first()
             user_streak = UserStreak.objects.filter(user_id=user_id).first()
             user = CustomUser.objects.filter(pk=user_id).first()
             
@@ -43,4 +43,4 @@ class UserStatsView(APIView):
             }
             return Response(serialized_data)
         else:
-            return Response({'error': 'UserStats not found'}, status=StatsProfile.HTTP_404_NOT_FOUND)
+            return Response({'error': 'WeeklyUserStats not found'}, status=StatsProfile.HTTP_404_NOT_FOUND)
