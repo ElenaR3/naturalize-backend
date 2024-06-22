@@ -1,6 +1,10 @@
+from multiprocessing import Event
+from tkinter.tix import Tree
 from rest_framework import serializers
-from .models import CustomUser, WeeklyUserStats, UserStreak
 
+from shared.models import Competences
+from .models import NGOEntity, CustomUser, Post, WeeklyUserStats, UserStreak
+from rest_framework.serializers import ModelSerializer
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -16,17 +20,43 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+class UserPostSerializer(ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('name', 'surname')
+
+class CompetencesSerializer(ModelSerializer):
+    class Meta:
+        model = Competences()
+        fields = '__all__'
+
+class PostSerializer(ModelSerializer):
+    created_by_user = UserPostSerializer()
+    class Meta:
+        model = Post()
+        fields = '__all__'
+
+
+class UserEventsCalendar(ModelSerializer):
+    enrolled_events = UserSerializer(many=True)
+    applied_events = UserSerializer(many=True)
+    saved_events = UserSerializer(many=True)
+    class Meta:
+        model = Event
+        fields = '__all__'
+
 class UserStatsSerializer(serializers.Serializer):
     xp_earned = serializers.IntegerField()
     rank = serializers.IntegerField()
 
 class UserXPSerializer(serializers.Serializer):
     total_xp = serializers.IntegerField()
+    number_top_finishes = serializers.IntegerField()
 
 class UserStreakSerializer(serializers.Serializer):
     current_streak = serializers.IntegerField()
 
-class SummaryUserStatsSerializer(serializers.Serializer):
-    user_stats = UserStatsSerializer()
-    current_streak = UserStreakSerializer()
-    user = UserXPSerializer()
+class NGOProfileSerializer(ModelSerializer):
+    class Meta:
+        model = NGOEntity()
+        fields = '__all__'

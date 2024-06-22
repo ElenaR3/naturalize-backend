@@ -41,10 +41,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'events.apps.EventsConfig',
     'user.apps.UserConfig',
+    'shared.apps.SharedConfig', 
+    'ngo.apps.NgoConfig',
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt',
-
 
 ]
 

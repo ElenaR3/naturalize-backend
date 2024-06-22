@@ -76,7 +76,8 @@ def createEvent(request):
     markerType = data['markerType'],
     eventDescription = data['eventDescription'],
     location=location,
-    team = data['team']
+    team = data['team'],
+    
     )
 
     serializer = EventSerializer(event, many=False)

@@ -1,17 +1,13 @@
 from distutils.text_file import TextFile
-from sqlite3 import DataError
 from django.db import models
-
+from ngo.models import NGOEntity
+#from ngo.models import NGOEntity
+from shared.models import Competences, Location, Team
 
 class Achievements(models.Model):
     name = models.TextField()
     description = models.TextField()
     xpGiven = models.IntegerField()
-
-class Location(models.Model):
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    text = models.TextField()
 
 class Event(models.Model):
     event_types = [
@@ -27,29 +23,23 @@ class Event(models.Model):
     markerType = models.IntegerField(choices=event_types) # event or VO
     eventDescription = models.TextField() 
     location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True, related_name='event_locations')
-    competences = models.ManyToManyField('user.competences', related_name="event_comp")
+    competences = models.ManyToManyField(Competences, related_name="event_comp")
     achievements = models.ManyToManyField(Achievements, related_name="event_achv")
-    savedByUser = models.ManyToManyField('user.CustomUser', related_name="event_saved_by_user")
-    createdByUser = models.ForeignKey('user.CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='event_CreatedBy')
-    team = models.TextField()
+    team = models.ManyToManyField(Team, related_name='event_teams_focus')
     people_needed = models.PositiveIntegerField(default=0)
+    people_applied = models.PositiveIntegerField(default=0)
     image_url = models.URLField(null=True, blank=True)
+    event_xp = models.IntegerField(null=True, blank=True)
+    organized_by = models.ForeignKey(NGOEntity, related_name="event_organizer", on_delete=models.CASCADE, blank=True, null=True)
     # todo: add Benefit
-
-    def save(self, *args, **kwargs) -> None:
-        if self.image_url is None and self.image_file is None:
-            raise DataError("Image_url and image_file cannot both be null")
-        super().save(*args, **kwargs)
-
-    @property
-    def image(self) -> str:
-        if self.image_file is not None:
-            return self.image_file.url
-        else:
-            return self.image_url
 
     class Meta:
         ordering = ['-updated']
+
+class Photo(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='gallery_photos')
+    image = models.URLField()
+    caption = models.CharField(max_length=255, blank=True)
 
 # {
 # "eventName": "TestName",

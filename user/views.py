@@ -1,11 +1,15 @@
 # Create your views here.
+from calendar import week
 from django.utils import timezone
-from pstats import StatsProfile
+from pstats import Stats, StatsProfile
 import statistics
 from rest_framework.views import APIView
-
-from user.models import CustomUser, WeeklyUserStats, UserStreak, Week
-from .serializers import UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
+from rest_framework.decorators import api_view
+from events.models import Achievements
+from events.serializers import AchievementsSerializer, EventSerializer
+from shared.models import Competences
+from user.models import CustomUser, Post, WeeklyUserStats, UserStreak, Week, CompletedEvents
+from .serializers import CompetencesSerializer, PostSerializer, UserEventsCalendar, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
 from rest_framework.response import Response
 
 
@@ -18,29 +22,86 @@ class RegisterView(APIView):
         return Response(serializer.data)
 
 class UserStatsView(APIView):
-    def get(self, request, user_id):
+    def post(self, request):
         # Get the current date
         current_date = timezone.now()
+        data = request.data
+        user_id = data.get('user_id')
         
         # Find the current season based on the current date
         current_week = Week.objects.filter(start__lte=current_date, end__gte=current_date).first()
 
         if current_week:
             # Retrieve UserStats data for the user and the current season
-            user_stats = WeeklyUserStats.objects.filter(user_id=user_id, season=current_week).first()
+            user_stats = WeeklyUserStats.objects.filter(user_id=user_id, week=current_week).first()
             user_streak = UserStreak.objects.filter(user_id=user_id).first()
             user = CustomUser.objects.filter(pk=user_id).first()
-            
+
+            #achievements_gained = CompletedEvents.objects.filter(user_id=user_id).select_related('event').prefetch_related('event__achievements')
+            achievements_gained = Achievements.objects.filter(event_achv__completed_event__user=user_id).distinct().values('description', 'id', 'name', 'xpGiven')
+            competences_gained = Competences.objects.filter(user_gained_competences__id=user_id)
+
             user_stats_serializer = UserStatsSerializer(user_stats)
             user_streak_serializer = UserStreakSerializer(user_streak)
             custom_user_serializer = UserXPSerializer(user)
+            achievements_serializer = AchievementsSerializer(achievements_gained, many=True)
+            competences_serializer = CompetencesSerializer(competences_gained, many=True)
 
             # Combine both serializer data into a single dictionary
             serialized_data = {
-                  'user_stats': user_stats_serializer.data,
-                  'streak_data': user_streak_serializer.data,  # Extract current_streak from serializer data
-                  'userxp': custom_user_serializer.data
+                  'current_league': current_week.league,
+                  'current_week_xp': user_stats_serializer.data.get('xp_earned'),
+                  'current_week_rank': user_stats_serializer.data.get('rank'),
+                  'current_streak': user_streak_serializer.data.get('current_streak'),  # Extract current_streak from serializer data
+                  'total_xp': custom_user_serializer.data.get('total_xp'),
+                  'number_top_finishes': custom_user_serializer.data.get('number_top_finishes'),
+                  'user_achievements': achievements_serializer.data,
+                  'user_competences': competences_serializer.data
             }
             return Response(serialized_data)
         else:
             return Response({'error': 'WeeklyUserStats not found'}, status=StatsProfile.HTTP_404_NOT_FOUND)
+
+# returns all posts from user's friends
+def get_followed_users_posts(user_id):
+    # Fetch the user object
+    user = CustomUser.objects.get(pk=user_id)
+    
+    # Get posts created by users that the current user follows
+    followed_users_posts = Post.objects.filter(created_by_user__in=user.following.all())
+
+    return followed_users_posts
+
+class UserFeed(APIView):
+    def post(self, request):
+        data = request.data
+        user_id = data.get('user_id')
+
+        followed_users_posts = get_followed_users_posts(user_id=user_id)
+        serializer = PostSerializer(followed_users_posts, many=True)
+        return Response(serializer.data)
+
+class GetUserPlannedEvents(APIView):
+    def post(self, request):
+        data = request.data
+        user_id = data.get('user_id')
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=Stats.HTTP_404_NOT_FOUND)
+
+        enrolled_events = user.enrolled_events.all()
+        applied_events = user.applied_events.all()
+        saved_events = user.saved_events.all()
+
+        enrolled_events_serializer = EventSerializer(enrolled_events, many=True)
+        applied_events_serializer = EventSerializer(applied_events, many=True)
+        saved_events_serializer = EventSerializer(saved_events, many=True)
+
+        return Response({
+            "enrolled_events": enrolled_events_serializer.data,
+            "applied_events": applied_events_serializer.data,
+            "saved_events": saved_events_serializer.data
+        })
+
+
