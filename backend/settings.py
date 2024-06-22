@@ -65,7 +65,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
-ALLOWED_HOSTS = ['https://naturalize-backend-production.up.railway.app/']
+ALLOWED_HOSTS = ['*']
 
 TEMPLATES = [
     {
