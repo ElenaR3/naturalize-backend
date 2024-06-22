@@ -1,4 +1,3 @@
-from signal import default_int_handler
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from ngo.models import NGOEntity

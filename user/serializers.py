@@ -1,9 +1,8 @@
 from multiprocessing import Event
-from tkinter.tix import Tree
 from rest_framework import serializers
 
 from shared.models import Competences
-from .models import NGOEntity, CustomUser, Post, WeeklyUserStats, UserStreak
+from .models import NGOEntity, CustomUser, Post
 from rest_framework.serializers import ModelSerializer
 
 class UserSerializer(serializers.ModelSerializer):

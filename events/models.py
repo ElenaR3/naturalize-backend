@@ -1,7 +1,5 @@
-from distutils.text_file import TextFile
 from django.db import models
 from ngo.models import NGOEntity
-#from ngo.models import NGOEntity
 from shared.models import Competences, Location, Team
 
 class Achievements(models.Model):

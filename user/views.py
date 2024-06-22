@@ -2,7 +2,6 @@
 from calendar import week
 from django.utils import timezone
 from pstats import Stats, StatsProfile
-import statistics
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from events.models import Achievements
