@@ -1,4 +1,3 @@
-from msilib.schema import ComboBox
 from django.contrib import admin
 
 from shared.models import Competences, Location, Team
