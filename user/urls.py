@@ -1,5 +1,5 @@
 from django.urls import path
-from user.views import GetAllEvents, GetUserProfile, RegisterView, UserFeed, UserStatsView
+from user.views import GetAllEvents, GetDonations, GetPetitions, GetUserProfile, RegisterView, UserFeed, UserGoalList, UserStatsView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -12,5 +12,8 @@ urlpatterns = [
     path('api/userStats/', UserStatsView.as_view(), name="weekly_user_stats"),
     path('api/feed/', UserFeed.as_view(), name="user_feed"),
     path('api/events', GetAllEvents.as_view(), name="user_events"),
-    path('api/userProfile', GetUserProfile.as_view(), name="user_profile")
+    path('api/userProfile', GetUserProfile.as_view(), name="user_profile"),
+    path('api/petitions', GetPetitions.as_view(), name="user_petitions"),
+    path('api/donations', GetDonations.as_view(), name="user_donations"),
+    path('api/goals', UserGoalList.as_view(), name="user_goals"),
 ]

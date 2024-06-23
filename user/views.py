@@ -7,8 +7,8 @@ from rest_framework.decorators import api_view
 from events.models import Achievements, Event
 from events.serializers import AchievementsSerializer, UserEventsCalendar
 from shared.models import Competences
-from user.models import CustomUser, Post, WeeklyUserStats, UserStreak, Week, CompletedEvents
-from .serializers import CompetencesSerializer, PostSerializer, UserProfileSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
+from user.models import CustomUser, Donation, Petition, Post, UserGoal, WeeklyUserStats, UserStreak, Week, CompletedEvents
+from .serializers import CompetencesSerializer, DonationSerializer, PetitionSerializer, PostSerializer, UserGoalSerializer, UserPostSerializer, UserProfileSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
 from rest_framework.response import Response
 
 
@@ -108,5 +108,42 @@ class GetUserProfile(APIView):
         serializer = UserProfileSerializer(user)
         return Response(serializer.data)
 
-    
+class GetPetitions(APIView):
+    def post(self, request):
+        data = request.data
+        print(data)
+        user_id = data.get('user_id')
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=Stats.HTTP_404_NOT_FOUND)
+
+        petitions = Petition.objects.all()
+        
+        serializer = PetitionSerializer(petitions, many=True, context={'user': user})
+        return Response(serializer.data)
+
+class GetDonations(APIView):
+    def post(self, request):
+        data = request.data
+        user_id = data.get('user_id')
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=Stats.HTTP_404_NOT_FOUND)
+
+        donations = Donation.objects.all()
+        
+        serializer = DonationSerializer(donations, many=True, context={'user': user})
+        return Response(serializer.data)
+
+class UserGoalList(APIView):
+    def post(self, request):
+        data = request.data
+        user_id = data.get('user_id')
+
+        user_goals = UserGoal.objects.filter(user_id=user_id)
+        serializer = UserGoalSerializer(user_goals, many=True)
+        return Response(serializer.data)
+
 

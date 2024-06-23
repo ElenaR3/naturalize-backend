@@ -1,8 +1,13 @@
 from rest_framework import serializers
 
-from shared.models import Competences
-from .models import Donation, NGOEntity, CustomUser, Petition, Post, UserPhoto
+from shared.models import Competences, Location
+from .models import Donation, Goal, NGOEntity, CustomUser, Petition, Post, UserGoal, UserPhoto, Photo
 from rest_framework.serializers import ModelSerializer
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -55,6 +60,11 @@ class UserPhotoSerializer(ModelSerializer):
         model = UserPhoto 
         fields = ['image', 'caption']
 
+class PhotoSerializer(ModelSerializer):
+    class Meta:
+        model = Photo 
+        fields = ['image', 'caption']
+
 class UserProfileSerializer(ModelSerializer):
     following = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
@@ -78,11 +88,41 @@ class FriendsAppliedSerializer(ModelSerializer):
         fields = ["id", "name", "surname", "profile_image_url"]
 
 class PetitionSerializer(ModelSerializer):
-    class meta:
+    is_saved = serializers.SerializerMethodField()
+    impact_gallery = PhotoSerializer()
+
+    class Meta:
         model = Petition 
-        fields = '__all__'
+        fields = ["id", "is_saved", "title","avg_rating","xp_given","start_date","about","friends_signed","image_url","about_creator",
+    "total_signs","created_by","impact_gallery"]
+      
+    def get_is_saved(self, obj):
+        user = self.context.get('user')
+        return user.saved_user_petitions.filter(id=obj.id).exists()
 
 class DonationSerializer(ModelSerializer):
-    class meta:
+    
+    location = LocationSerializer()
+    is_saved = serializers.SerializerMethodField() 
+    impact_gallery = PhotoSerializer()
+
+    class Meta:
         model = Donation 
+        fields = ["id", "is_saved", "title","avg_rating","xp_given","start_date","about","friends_donated","image_url","about_creator",
+    "impact_gallery", "location"]
+    
+    def get_is_saved(self, obj):
+        user = self.context.get('user')
+        return user.saved_donations_by_users.filter(id=obj.id).exists()
+
+class GoalSerializer(ModelSerializer):
+    class Meta:
+        model = Goal
+        fields = '__all__' 
+
+class UserGoalSerializer(ModelSerializer):
+    goal = GoalSerializer()
+
+    class Meta:
+        model = UserGoal
         fields = '__all__'

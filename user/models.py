@@ -1,3 +1,4 @@
+from tkinter import CASCADE
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from ngo.models import NGOEntity
@@ -28,8 +29,8 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
-class CustomUser(AbstractUser):
 
+class CustomUser(AbstractUser):
     username = None  # Identify user by email instead of username
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=100, blank=True, null=True)
@@ -60,6 +61,36 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.name
+
+class Petition(models.Model):
+    title = models.TextField()
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='petition_creator')
+    saved_petitions_by_users = models.ManyToManyField(CustomUser, related_name='saved_user_petitions', null=True)
+    avg_rating = models.FloatField()
+    xp_given = models.IntegerField()
+    start_date = models.DateField()
+    about = models.TextField()
+    # to be changed
+    friends_signed = models.IntegerField()
+    impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="petition_impact_gallery") 
+    image_url = models.TextField()
+    about_creator = models.TextField()
+    total_signs = models.IntegerField(default=0)
+
+class Donation(models.Model):
+    title = models.TextField()
+    created_by = models.ForeignKey(NGOEntity, on_delete=models.CASCADE, related_name='donation_creator')
+    avg_rating = models.FloatField()
+    xp_given = models.IntegerField()
+    start_date = models.DateField()
+    about = models.TextField()
+    # to be changed
+    friends_donated = models.IntegerField(default=0)
+    impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="donation_impact_gallery") 
+    image_url = models.TextField()
+    about_creator = models.TextField()
+    location = models.OneToOneField(Location, on_delete=models.CASCADE)
+    saved_donations_by_users = models.ManyToManyField(CustomUser, null=True, blank=True, related_name='saved_donations_by_users')
 
 class Week(models.Model):
     LEAGUE_CHOICES = [
@@ -106,24 +137,23 @@ class UserStreak(models.Model):
 class Goal(models.Model):
     name = models.TextField()
     description = models.TextField()
-    level = models.IntegerField()
-    xp_required = models.IntegerField()
+    level = models.IntegerField(default=1)
+    xp_required = models.IntegerField(default=0)
+    image_url = models.TextField(blank=True, null=True)
 
 class UserGoal(models.Model):
     STATUS_CHOICES = [
-        (1, 1),
-        (2, 2),
+        (1, "Active"),
+        (2, "Completed"),
     ]
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     goal = models.ForeignKey(Goal, on_delete=models.CASCADE)
-    xp_accumulated = models.IntegerField(default=0)
+    xp_accumulated = models.PositiveIntegerField(default=0)
     status = models.IntegerField(choices=STATUS_CHOICES, default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        unique_together = ('user', 'status',)
 
 class CompletedEvents(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="completed_event")
@@ -161,31 +191,3 @@ class UserPhoto(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='gallery_photos')
     image = models.URLField()
     caption = models.CharField(max_length=255, blank=True)
-
-class Petition(models.Model):
-    title = models.TextField()
-    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='petition_creator')
-    avg_rating = models.FloatField()
-    xp_given = models.IntegerField()
-    start_date = models.DateField()
-    about = models.TextField()
-    # to be changed
-    friends_signed = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="friends_signed")
-    impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="petition_impact_gallery") 
-    image_url = models.TextField()
-    about_creator = models.TextField()
-    total_signs = models.IntegerField(default=0)
-
-class Donation(models.Model):
-    title = models.TextField()
-    created_by = models.ForeignKey(NGOEntity, on_delete=models.CASCADE, related_name='donation_creator')
-    avg_rating = models.FloatField()
-    xp_given = models.IntegerField()
-    start_date = models.DateField()
-    about = models.TextField()
-    # to be changed
-    friends_applied = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="friends_donated")
-    impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="donation_impact_gallery") 
-    image_url = models.TextField()
-    about_creator = models.TextField()
-    location = models.OneToOneField(Location, on_delete=models.CASCADE)
