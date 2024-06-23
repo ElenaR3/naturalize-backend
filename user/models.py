@@ -70,7 +70,7 @@ class Petition(models.Model):
     start_date = models.DateField()
     about = models.TextField()
     # to be changed
-    friends_signed = models.IntegerField()
+    friends_signed = models.IntegerField(default=0)
     impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="petition_impact_gallery") 
     image_url = models.TextField()
     about_creator = models.TextField()
