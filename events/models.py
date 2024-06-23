@@ -1,3 +1,4 @@
+from pyexpat import model
 from django.db import models
 from ngo.models import NGOEntity
 from shared.models import Competences, Location, Team
@@ -29,6 +30,7 @@ class Event(models.Model):
     image_url = models.URLField(null=True, blank=True)
     event_xp = models.IntegerField(null=True, blank=True)
     organized_by = models.ForeignKey(NGOEntity, related_name="event_organizer", on_delete=models.CASCADE, blank=True, null=True)
+    friends_applied = models.IntegerField(null=True, blank=True)
     # todo: add Benefit
 
     class Meta:

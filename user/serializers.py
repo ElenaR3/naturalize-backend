@@ -1,8 +1,7 @@
-from multiprocessing import Event
 from rest_framework import serializers
 
 from shared.models import Competences
-from .models import NGOEntity, CustomUser, Post
+from .models import NGOEntity, CustomUser, Post, UserPhoto
 from rest_framework.serializers import ModelSerializer
 
 class UserSerializer(serializers.ModelSerializer):
@@ -35,13 +34,9 @@ class PostSerializer(ModelSerializer):
         model = Post()
         fields = '__all__'
 
-
-class UserEventsCalendar(ModelSerializer):
-    enrolled_events = UserSerializer(many=True)
-    applied_events = UserSerializer(many=True)
-    saved_events = UserSerializer(many=True)
+class NGOProfileSerializer(ModelSerializer):
     class Meta:
-        model = Event
+        model = NGOEntity()
         fields = '__all__'
 
 class UserStatsSerializer(serializers.Serializer):
@@ -55,7 +50,29 @@ class UserXPSerializer(serializers.Serializer):
 class UserStreakSerializer(serializers.Serializer):
     current_streak = serializers.IntegerField()
 
-class NGOProfileSerializer(ModelSerializer):
+class UserPhotoSerializer(ModelSerializer):
     class Meta:
-        model = NGOEntity()
-        fields = '__all__'
+        model = UserPhoto 
+        fields = ['image', 'caption']
+
+class UserProfileSerializer(ModelSerializer):
+    following = serializers.SerializerMethodField()
+    followers = serializers.SerializerMethodField()
+    gained_competences = CompetencesSerializer(many=True, read_only=True)
+    gallery_photos = UserPhotoSerializer(many=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ["name", "surname", "following", "followers", "bio", "focus_teams", "gallery_photos",
+        "gained_competences"]
+
+    def get_following(self, obj):
+        return obj.following.count()
+
+    def get_followers(self, obj):
+        return obj.followers.count()
+
+class FriendsAppliedSerializer(ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ["id", "name", "surname", "profile_image_url"]

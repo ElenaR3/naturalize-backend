@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from ngo.models import NGOEntity
 from shared.models import Competences, Location, Team
-from events.models import Event
+from events.models import Event, Photo
 
 class UserManager(BaseUserManager):
 
@@ -156,3 +156,35 @@ class Product(models.Model):
     name = models.TextField()
     product_image = models.URLField(blank=True, null=True)
     description = models.TextField()
+
+class UserPhoto(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='gallery_photos')
+    image = models.URLField()
+    caption = models.CharField(max_length=255, blank=True)
+
+class Petition(models.Model):
+    title = models.TextField()
+    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='petition_creator')
+    avg_rating = models.FloatField()
+    xp_given = models.IntegerField()
+    start_date = models.DateField()
+    about = models.TextField()
+    # to be changed
+    friends_applied = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="friends_signed")
+    impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="petition_impact_gallery") 
+    image_url = models.TextField()
+    about_creator = models.TextField()
+
+class Donation(models.Model):
+    title = models.TextField()
+    created_by = models.ForeignKey(NGOEntity, on_delete=models.CASCADE, related_name='donation_creator')
+    avg_rating = models.FloatField()
+    xp_given = models.IntegerField()
+    start_date = models.DateField()
+    about = models.TextField()
+    # to be changed
+    friends_applied = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="friends_donated")
+    impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="donation_impact_gallery") 
+    image_url = models.TextField()
+    about_creator = models.TextField()
+    location = models.OneToOneField(Location, on_delete=models.CASCADE)

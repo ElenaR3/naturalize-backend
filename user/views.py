@@ -4,11 +4,11 @@ from django.utils import timezone
 from pstats import Stats, StatsProfile
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
-from events.models import Achievements
-from events.serializers import AchievementsSerializer, EventSerializer
+from events.models import Achievements, Event
+from events.serializers import AchievementsSerializer, UserEventsCalendar
 from shared.models import Competences
 from user.models import CustomUser, Post, WeeklyUserStats, UserStreak, Week, CompletedEvents
-from .serializers import CompetencesSerializer, PostSerializer, UserEventsCalendar, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
+from .serializers import CompetencesSerializer, PostSerializer, UserProfileSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
 from rest_framework.response import Response
 
 
@@ -89,18 +89,24 @@ class GetUserPlannedEvents(APIView):
         except CustomUser.DoesNotExist:
             return Response({"error": "User not found"}, status=Stats.HTTP_404_NOT_FOUND)
 
-        enrolled_events = user.enrolled_events.all()
-        applied_events = user.applied_events.all()
-        saved_events = user.saved_events.all()
+        events = Event.objects.all()  # Assuming you want to check all events. Adjust the queryset if needed.
 
-        enrolled_events_serializer = EventSerializer(enrolled_events, many=True)
-        applied_events_serializer = EventSerializer(applied_events, many=True)
-        saved_events_serializer = EventSerializer(saved_events, many=True)
+        # Use the serializer with the user context
+        serializer = UserEventsCalendar(events, many=True, context={'user': user})
 
-        return Response({
-            "enrolled_events": enrolled_events_serializer.data,
-            "applied_events": applied_events_serializer.data,
-            "saved_events": saved_events_serializer.data
-        })
+        return Response(serializer.data)
 
+class GetUserProfile(APIView):
+    def post(self, request):
+        data = request.data
+        user_id = data.get('user_id')
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=Stats.HTTP_404_NOT_FOUND)
+        
+        serializer = UserProfileSerializer(user)
+        return Response(serializer.data)
+
+    
 
