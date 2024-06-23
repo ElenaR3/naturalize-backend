@@ -37,8 +37,6 @@ class Event(models.Model):
         ordering = ['-updated']
 
 class Photo(models.Model):
-    petition = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='petition_gallery_photos', null=True, blank=True)
-    donation = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='donation_gallery_photos', null=True, blank=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='gallery_photos', null=True, blank=True)
     image = models.URLField()
     caption = models.CharField(max_length=255, blank=True)
