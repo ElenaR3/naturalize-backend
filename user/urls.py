@@ -1,5 +1,5 @@
 from django.urls import path
-from user.views import GetUserPlannedEvents, GetUserProfile, RegisterView, UserFeed, UserStatsView
+from user.views import GetAllEvents, GetUserProfile, RegisterView, UserFeed, UserStatsView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -11,6 +11,6 @@ urlpatterns = [
     path('api/register/', RegisterView.as_view(), name="sign_up"),
     path('api/userStats/', UserStatsView.as_view(), name="weekly_user_stats"),
     path('api/feed/', UserFeed.as_view(), name="user_feed"),
-    path('api/userCalendar', GetUserPlannedEvents.as_view(), name="user_events_calendar"),
+    path('api/events', GetAllEvents.as_view(), name="user_events"),
     path('api/userProfile', GetUserProfile.as_view(), name="user_profile")
 ]

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from shared.models import Competences
-from .models import NGOEntity, CustomUser, Post, UserPhoto
+from .models import Donation, NGOEntity, CustomUser, Petition, Post, UserPhoto
 from rest_framework.serializers import ModelSerializer
 
 class UserSerializer(serializers.ModelSerializer):
@@ -76,3 +76,13 @@ class FriendsAppliedSerializer(ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ["id", "name", "surname", "profile_image_url"]
+
+class PetitionSerializer(ModelSerializer):
+    class meta:
+        model = Petition 
+        fields = '__all__'
+
+class DonationSerializer(ModelSerializer):
+    class meta:
+        model = Donation 
+        fields = '__all__'

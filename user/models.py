@@ -170,10 +170,11 @@ class Petition(models.Model):
     start_date = models.DateField()
     about = models.TextField()
     # to be changed
-    friends_applied = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="friends_signed")
+    friends_signed = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="friends_signed")
     impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="petition_impact_gallery") 
     image_url = models.TextField()
     about_creator = models.TextField()
+    total_signs = models.IntegerField(default=0)
 
 class Donation(models.Model):
     title = models.TextField()

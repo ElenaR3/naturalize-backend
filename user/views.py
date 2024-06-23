@@ -80,7 +80,7 @@ class UserFeed(APIView):
         serializer = PostSerializer(followed_users_posts, many=True)
         return Response(serializer.data)
 
-class GetUserPlannedEvents(APIView):
+class GetAllEvents(APIView):
     def post(self, request):
         data = request.data
         user_id = data.get('user_id')
