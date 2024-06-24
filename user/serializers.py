@@ -93,7 +93,7 @@ class PetitionSerializer(ModelSerializer):
 
     class Meta:
         model = Petition 
-        fields = ["id", "is_saved", "title","avg_rating","xp_given","start_date","about","friends_signed","image_url","about_creator",
+        fields = ["id", "is_saved", "title","avg_rating","xp_given","start_date","about","friends_that_signed","image_url","about_creator",
     "total_signs","created_by","impact_gallery"]
       
     def get_is_saved(self, obj):
@@ -108,7 +108,7 @@ class DonationSerializer(ModelSerializer):
 
     class Meta:
         model = Donation 
-        fields = ["id", "is_saved", "title","avg_rating","xp_given","start_date","about","friends_donated","image_url","about_creator",
+        fields = ["id", "is_saved", "title","avg_rating","xp_given","start_date","about","friends_that_donated","image_url","about_creator",
     "impact_gallery", "location"]
     
     def get_is_saved(self, obj):

@@ -70,11 +70,11 @@ class Petition(models.Model):
     start_date = models.DateField()
     about = models.TextField()
     # to be changed
-    #friends_signed = models.IntegerField(default=0)
     impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="petition_impact_gallery") 
     image_url = models.TextField()
     about_creator = models.TextField()
     total_signs = models.IntegerField(default=0)
+    friends_that_signed = models.IntegerField(default=0)
 
 class Donation(models.Model):
     title = models.TextField()
@@ -84,12 +84,12 @@ class Donation(models.Model):
     start_date = models.DateField()
     about = models.TextField()
     # to be changed
-    #friends_donated = models.IntegerField(default=0)
     impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="donation_impact_gallery") 
     image_url = models.TextField()
     about_creator = models.TextField()
     location = models.OneToOneField(Location, on_delete=models.CASCADE)
     saved_donations_by_users = models.ManyToManyField(CustomUser, null=True, blank=True, related_name='saved_donations_by_users')
+    friends_that_donated = models.IntegerField(default=0)
 
 class Week(models.Model):
     LEAGUE_CHOICES = [
