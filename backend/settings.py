@@ -68,8 +68,6 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'backend.urls'
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-ALLOWED_HOSTS = ['*']
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -143,6 +141,8 @@ CSRF_TRUSTED_ORIGINS = ['https://web-production-2154.up.railway.app', 'https://n
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 AUTH_USER_MODEL = 'user.CustomUser'
+
+ALLOWED_HOSTS = ['naturalize-backend-test.onrender.com']
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
