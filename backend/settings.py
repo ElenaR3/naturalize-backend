@@ -135,14 +135,15 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATIC_ROOT = BASE_DIR / "staticfiles" 
-CSRF_TRUSTED_ORIGINS = ['https://web-production-2154.up.railway.app', 'https://naturalize-backend-test.onrender.com',]
+CSRF_TRUSTED_ORIGINS = ['https://web-production-2154.up.railway.app', 'https://naturalize-backend-test.onrender.com',
+                        'https://greenie-backend-production-9055.up.railway.app']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 AUTH_USER_MODEL = 'user.CustomUser'
 
-ALLOWED_HOSTS = ['naturalize-backend-test.onrender.com']
+ALLOWED_HOSTS = ['naturalize-backend-test.onrender.com', 'greenie-backend-production-9055.up.railway.app']
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
