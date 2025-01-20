@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from ngo.models import NGOEntity
 from shared.models import Competences, Location, Team
-from events.models import Event, Photo
+from events.models import Event
 
 class UserManager(BaseUserManager):
 
@@ -56,10 +56,10 @@ class CustomUser(AbstractUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name']
+    REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.name
+        return self.name if self.name else self.email
 
 class Petition(models.Model):
     title = models.TextField()
@@ -70,7 +70,7 @@ class Petition(models.Model):
     start_date = models.DateField()
     about = models.TextField()
     # to be changed
-    impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="petition_impact_gallery") 
+    # impact_gallery = models.ForeignKey(PhotoBase, on_delete=models.CASCADE, related_name="petition_impact_gallery") 
     image_url = models.TextField()
     about_creator = models.TextField()
     total_signs = models.IntegerField(default=0)
@@ -84,7 +84,7 @@ class Donation(models.Model):
     start_date = models.DateField()
     about = models.TextField()
     # to be changed
-    impact_gallery = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="donation_impact_gallery") 
+    # impact_gallery = models.ForeignKey(PhotoBase, on_delete=models.CASCADE, related_name="donation_impact_gallery") 
     image_url = models.TextField()
     about_creator = models.TextField()
     location = models.OneToOneField(Location, on_delete=models.CASCADE)
@@ -185,8 +185,3 @@ class Product(models.Model):
     name = models.TextField()
     product_image = models.URLField(blank=True, null=True)
     description = models.TextField()
-
-class UserPhoto(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='gallery_photos')
-    image = models.URLField()
-    caption = models.CharField(max_length=255, blank=True)

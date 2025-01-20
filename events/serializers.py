@@ -1,8 +1,19 @@
 from rest_framework import serializers
-from .models import Event, Location, Achievements, Photo
+from shared.models import Team
+from .models import Event, Location, Achievements, Competences
 from user.serializers import CompetencesSerializer
 from shared.utils import format_datetime
-from user.serializers import NGOProfileSerializer, FriendsAppliedSerializer
+from user.serializers import NGOProfileSerializer
+from rest_framework import generics
+from shared.serializers import PhotoSerializer
+
+class TeamSerializer(serializers.ModelSerializer):
+
+    name = serializers.CharField(source='get_name_display') 
+
+    class Meta:
+        model = Team
+        fields = '__all__'
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,7 +21,7 @@ class LocationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class MapMarkerSerializer(serializers.ModelSerializer):
-    location = LocationSerializer() # nested serializer
+    location = LocationSerializer()
     class Meta:
         model = Event
         fields = ['id', 'eventName', 'markerType', 'eventDescription', 'location', 'team']
@@ -20,14 +31,15 @@ class AchievementsSerializer(serializers.ModelSerializer):
         model = Achievements
         fields = '__all__'
 
-class PhotoSerializer(serializers.ModelSerializer):
+class CompetencesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Photo
-        fields = ('image', 'caption')
+        model = Competences
+        fields = '__all__'
 
 class EventSerializer(serializers.ModelSerializer):
     startDate = serializers.SerializerMethodField()
     endDate = serializers.SerializerMethodField()
+    main_image_url = serializers.SerializerMethodField()
     
     location = LocationSerializer()
     gallery_photos = PhotoSerializer(many=True) 
@@ -44,6 +56,33 @@ class EventSerializer(serializers.ModelSerializer):
 
     def get_endDate(self, instance):
         return format_datetime(instance.endDate)
+    
+    def get_main_image_url(self, instance):
+        return instance.main_image_url
+    
+class EventListView(generics.ListAPIView):
+    queryset = Event.objects.all()
+    serializer_class = MapMarkerSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        team_ids = self.request.query_params.get('team_ids', None)
+
+        if team_ids:
+            team_ids_list = []
+            for team_id in team_ids.split(','):
+                try:
+                    team_ids_list.append(int(team_id))
+                except ValueError:
+                    continue  
+
+            if not team_ids_list:
+                return Response({"error": "Invalid team_ids provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+            queryset = queryset.filter(team__id__in=team_ids_list).distinct()
+
+        return queryset
 
 class UserEventsCalendar(serializers.ModelSerializer):
     startDate = serializers.SerializerMethodField()
