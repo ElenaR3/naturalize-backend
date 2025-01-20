@@ -143,7 +143,7 @@ CSRF_TRUSTED_ORIGINS = ['https://web-production-2154.up.railway.app', 'https://n
 
 AUTH_USER_MODEL = 'user.CustomUser'
 
-ALLOWED_HOSTS = ['naturalize-backend-test.onrender.com', 'greenie-backend-production-9055.up.railway.app']
+ALLOWED_HOSTS = ['naturalize-backend-test.onrender.com', 'greenie-backend-production-9055.up.railway.app', '127.0.0.1']
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

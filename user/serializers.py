@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
+from shared.serializers import PhotoSerializer
 from shared.models import Competences, Location
-from .models import Donation, Goal, NGOEntity, CustomUser, Petition, Post, UserGoal, UserPhoto, Photo
+from .models import Donation, Goal, NGOEntity, CustomUser, Petition, Post, UserGoal
 from rest_framework.serializers import ModelSerializer
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -13,11 +14,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["id", "email", "name", "password"]
+        fields = ["id", "email", "password"]
 
     def create(self, validated_data):
         user = CustomUser.objects.create(email=validated_data['email'],
-                                       name=validated_data['name']
                                          )
         user.set_password(validated_data['password'])
         user.save()
@@ -55,21 +55,11 @@ class UserXPSerializer(serializers.Serializer):
 class UserStreakSerializer(serializers.Serializer):
     current_streak = serializers.IntegerField()
 
-class UserPhotoSerializer(ModelSerializer):
-    class Meta:
-        model = UserPhoto 
-        fields = ['image', 'caption']
-
-class PhotoSerializer(ModelSerializer):
-    class Meta:
-        model = Photo 
-        fields = ['image', 'caption']
-
 class UserProfileSerializer(ModelSerializer):
     following = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
     gained_competences = CompetencesSerializer(many=True, read_only=True)
-    gallery_photos = UserPhotoSerializer(many=True)
+    gallery_photos = PhotoSerializer(many=True, read_only=True)
 
     class Meta:
         model = CustomUser

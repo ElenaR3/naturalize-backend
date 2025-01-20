@@ -1,7 +1,5 @@
 from django.db import models
 
-# Create your models here.
-
 class NGOEntity(models.Model):
     name = models.TextField()
     about = models.TextField()
@@ -10,3 +8,6 @@ class NGOEntity(models.Model):
     avg_rating = models.FloatField(default=0)
     total_ratings = models.PositiveIntegerField(default=0)
     total_xp = models.IntegerField(default=0)
+    ngo_profile_gallery = models.ManyToManyField('shared.Photo', related_name='ngo_gallery', blank=True)
+
+    # gallery, history, focus_teams, events_organized
