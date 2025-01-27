@@ -1,9 +1,12 @@
+import importlib
 from rest_framework import serializers
-
+from events.serializers import TeamSerializer
 from shared.serializers import PhotoSerializer
-from shared.models import Competences, Location
+from shared.models import Location
 from .models import Donation, Goal, NGOEntity, CustomUser, Petition, Post, UserGoal
 from rest_framework.serializers import ModelSerializer
+from shared.serializers import AchievementsSerializer, CompetencesSerializer
+from django.db.models import QuerySet
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,21 +31,23 @@ class UserPostSerializer(ModelSerializer):
         model = CustomUser
         fields = ('name', 'surname')
 
-class CompetencesSerializer(ModelSerializer):
-    class Meta:
-        model = Competences()
-        fields = '__all__'
-
 class PostSerializer(ModelSerializer):
     created_by_user = UserPostSerializer()
     class Meta:
         model = Post()
         fields = '__all__'
 
-class NGOProfileSerializer(ModelSerializer):
-    class Meta:
-        model = NGOEntity()
-        fields = '__all__'
+# class NGOProfileSerializer(ModelSerializer):
+#     ngo_profile_gallery = PhotoSerializer(many=True)
+
+#     def get_focus_teams(self, obj):
+#         # Using importlib to import TeamSerializer lazily
+#         TeamSerializer = importlib.import_module('events.serializers').TeamSerializer
+#         return TeamSerializer(obj.focus_teams, many=True).data
+
+#     class Meta:
+#         model = NGOEntity()
+#         fields = '__all__'
 
 class UserStatsSerializer(serializers.Serializer):
     xp_earned = serializers.IntegerField()
@@ -116,3 +121,39 @@ class UserGoalSerializer(ModelSerializer):
     class Meta:
         model = UserGoal
         fields = '__all__'
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    following = serializers.SerializerMethodField()
+    followers = serializers.SerializerMethodField()
+    gained_competences = CompetencesSerializer(many=True, read_only=True)
+    gained_achievements = AchievementsSerializer(many=True, read_only=True)
+    gallery_photos = PhotoSerializer(many=True, read_only=True)  # Related to the CustomUser (user_profile_gallery)
+    created_events = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "email", "name", "surname", "total_xp", "profile_image_url", 
+            "bio", "birthday", "number_top_finishes", "following", 
+            "followers", "gained_competences", "gained_achievements", "gallery_photos", "created_events"
+        ]
+
+    def get_following(self, obj):
+        # Return the count of following users
+        return obj.following.count()
+
+    def get_followers(self, obj):
+        # Return the count of followers
+        return obj.followers.count()
+
+    def get_created_events(self, obj):
+        # due to circular import 
+        from events.serializers import EventSerializer
+        events = obj.created_events.all() if isinstance(obj.created_events, QuerySet) else [obj.created_events]
+        return EventSerializer(events, many=True).data if events else []
+
+class UserEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'name', 'surname', 'total_xp', 'profile_image_url', 
+                  'birthday', 'bio', 'number_top_finishes','focus_teams']

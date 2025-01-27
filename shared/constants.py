@@ -5,3 +5,9 @@ class TeamChoices(models.IntegerChoices):
         MARINES = 2, 'MARINES'
         GREEN_CITIES = 3, 'GREEN CITIES'
         ANCIENT_FORESTS_FOREVAA = 4, 'ANCIENT FORESTS FOREVAA'
+
+class EventEnrollementStatus(models.TextChoices):
+        APPLIED = 'applied', 'Applied'
+        ACCEPTED = 'accepted', 'Accepted'
+        WAITLISTED = 'waitlisted', 'Waitlisted'
+        SAVED = 'saved', 'Saved'

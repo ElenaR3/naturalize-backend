@@ -2,7 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from ngo.models import NGOEntity
 from shared.models import Competences, Location, Team
-from events.models import Event
+from events.models import Achievements, Event
+from shared.constants import EventEnrollementStatus
+from shared.models import Photo
 
 class UserManager(BaseUserManager):
 
@@ -37,15 +39,13 @@ class CustomUser(AbstractUser):
     total_xp = models.PositiveIntegerField(default=0)
     date_joined = models.DateTimeField(auto_now_add=True)
     profile_image_url = models.URLField(null=True, blank=True)
-    age = models.IntegerField(null=True, blank=True)
+    birthday = models.DateField(null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     number_top_finishes = models.PositiveIntegerField(default=0, blank=True)
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers', null=True, blank=True)
     focus_teams = models.ManyToManyField(Team, related_name='user_focus_teams', null=True, blank=True)
     gained_competences = models.ManyToManyField(Competences, related_name='user_gained_competences', null=True, blank=True)
-    saved_events = models.ManyToManyField(Event, related_name="events_saved_by_user", null=True, blank=True)
-    enrolled_events = models.ManyToManyField(Event, related_name="enrolled_in_events", null=True, blank=True)
-    applied_events = models.ManyToManyField(Event, related_name="applied_for_events", null=True, blank=True)
+    gained_achievements = models.ManyToManyField(Achievements, related_name='user_gained_achievements', null=True, blank=True)
     created_events = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True, blank=True, related_name='events_created_by_user')
 
     is_admin = models.BooleanField(default=False)
@@ -185,3 +185,21 @@ class Product(models.Model):
     name = models.TextField()
     product_image = models.URLField(blank=True, null=True)
     description = models.TextField()
+
+class UserEventInteraction(models.Model):
+
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=EventEnrollementStatus.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            # Allow multiple "saved" statuses
+            # Ensure only one application status (applied/accepted/waitlisted) per user-event
+            models.UniqueConstraint(
+                fields=['user', 'event'],
+                condition=~models.Q(status='saved'),
+                name='unique_application_status_per_user_event',
+            ),
+        ]

@@ -1,11 +1,10 @@
 from rest_framework import serializers
 from shared.models import Team
-from .models import Event, Location, Achievements, Competences
-from user.serializers import CompetencesSerializer
+from .models import Event, Location, Competences
 from shared.utils import format_datetime
-from user.serializers import NGOProfileSerializer
+from ngo.serializers import NGOProfileSerializer
 from rest_framework import generics
-from shared.serializers import PhotoSerializer
+from shared.serializers import PhotoSerializer, AchievementsSerializer, CompetencesSerializer
 
 class TeamSerializer(serializers.ModelSerializer):
 
@@ -26,11 +25,6 @@ class MapMarkerSerializer(serializers.ModelSerializer):
         model = Event
         fields = ['id', 'eventName', 'markerType', 'eventDescription', 'location', 'team']
 
-class AchievementsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Achievements
-        fields = '__all__'
-
 class CompetencesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Competences
@@ -42,7 +36,9 @@ class EventSerializer(serializers.ModelSerializer):
     main_image_url = serializers.SerializerMethodField()
     
     location = LocationSerializer()
-    gallery_photos = PhotoSerializer(many=True) 
+    gallery_photos = PhotoSerializer(source='event_gallery', many=True, read_only=True)
+    team = TeamSerializer(many=True)
+    
     achievements = AchievementsSerializer(many=True)
     competences = CompetencesSerializer(many=True, read_only=True)
     organized_by = NGOProfileSerializer()

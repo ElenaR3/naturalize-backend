@@ -1,15 +1,17 @@
-# Create your views here.
-from calendar import week
 from django.utils import timezone
 from pstats import Stats, StatsProfile
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from events.models import Achievements, Event
-from events.serializers import AchievementsSerializer, UserEventsCalendar
+from events.serializers import AchievementsSerializer, EventSerializer, UserEventsCalendar
 from shared.models import Competences
-from user.models import CustomUser, Donation, Petition, Post, UserGoal, WeeklyUserStats, UserStreak, Week, CompletedEvents
-from .serializers import CompetencesSerializer, DonationSerializer, PetitionSerializer, PostSerializer, UserGoalSerializer, UserPostSerializer, UserProfileSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
+from user.models import CustomUser, Donation, Petition, Post, UserEventInteraction, UserGoal, WeeklyUserStats, UserStreak, Week, CompletedEvents
+from .serializers import CompetencesSerializer, CustomUserSerializer, DonationSerializer, PetitionSerializer, PostSerializer, UserEditSerializer, UserGoalSerializer, UserPostSerializer, UserProfileSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
 from rest_framework.response import Response
+from rest_framework import status
+from shared.constants import EventEnrollementStatus
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import permission_classes
 
 
 # view for registering users
@@ -96,17 +98,19 @@ class GetAllEvents(APIView):
 
         return Response(serializer.data)
 
-class GetUserProfile(APIView):
-    def post(self, request):
-        data = request.data
-        user_id = data.get('user_id')
-        try:
-            user = CustomUser.objects.get(id=user_id)
-        except CustomUser.DoesNotExist:
-            return Response({"error": "User not found"}, status=Stats.HTTP_404_NOT_FOUND)
-        
-        serializer = UserProfileSerializer(user)
-        return Response(serializer.data)
+@api_view(['GET'])
+def get_user_profile(request, user_id):
+    try:
+        # Get the user object based on user_id
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"Error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Serialize the user object
+    serializer = CustomUserSerializer(user)
+
+    # Return the serialized data
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 class GetPetitions(APIView):
     def post(self, request):
@@ -146,4 +150,86 @@ class UserGoalList(APIView):
         serializer = UserGoalSerializer(user_goals, many=True)
         return Response(serializer.data)
 
+@api_view(['POST'])
+def apply_to_event(request, event_id, user_id):
+    user = CustomUser.objects.get(id=user_id) 
+    try:
+        event = Event.objects.get(id=event_id)
+    except Event.DoesNotExist:
+        return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
 
+    application_status = UserEventInteraction.objects.filter(
+        user=user, event=event
+    ).exclude(status='saved').first()
+    
+    if application_status:
+        return Response(
+                {"message": f"Your event status is: ({application_status.status})."},
+                status=status.HTTP_200_OK,
+            )
+
+    UserEventInteraction.objects.create(user=user, event=event, status='applied')
+    return Response({"Success": "You have successfully applied to the event."}, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+def save_event(request, event_id, user_id):
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"Error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        event = Event.objects.get(id=event_id)
+    except Event.DoesNotExist:
+        return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    saved_status = UserEventInteraction.objects.filter(user=user, event=event, status='saved').first()
+
+    if saved_status:
+        return Response(
+            {"message": "You have already saved this event."},
+            status=status.HTTP_200_OK
+        )
+
+    UserEventInteraction.objects.create(user=user, event=event, status='saved')
+
+    return Response({"message": "Event successfully saved."}, status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+def get_user_events(request, user_id):
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"Error": f"User with {user_id} does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+    status_filter = request.query_params.get('status', None) 
+
+    # Validate the status parameter
+    if status_filter and status_filter not in EventEnrollementStatus.values:
+        return Response(
+            {"error": f"Invalid status. Valid statuses are: {', '.join(EventEnrollementStatus.values)}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Filter events by status
+    interactions = UserEventInteraction.objects.filter(user=user)
+    if status_filter:
+        interactions = interactions.filter(status=status_filter)
+
+    # Serialize the events
+    events = [interaction.event for interaction in interactions]
+    serializer = EventSerializer(events, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def edit_user_profile(request):
+    user = request.user
+
+    serializer = UserEditSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

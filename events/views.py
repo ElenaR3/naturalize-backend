@@ -2,9 +2,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from shared.models import Team, Competences
+from shared.serializers import TeamSerializer
 from .models import Event, Location
-from shared.models import Photo
-from .serializers import CompetencesSerializer, EventSerializer, MapMarkerSerializer, LocationSerializer, PhotoSerializer, TeamSerializer
+from .serializers import CompetencesSerializer, EventSerializer, MapMarkerSerializer, LocationSerializer, PhotoSerializer
 from datetime import datetime
 from rest_framework import status
 from django.utils.timezone import make_aware
@@ -142,10 +142,13 @@ def get_events_filtering_options(request):
 
 @api_view(['GET'])
 def get_event_gallery(request, event_id):
-    photos = Photo.objects.filter(event_id=event_id)
-    
-    if not photos.exists():
-        return Response({"No photos found for this event."}, status=status.HTTP_404_NOT_FOUND)
-    
-    serializer = PhotoSerializer(photos, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    try:
+        event = Event.objects.get(id=event_id)
+
+        photos = event.gallery_photos.all()
+
+        serializer = PhotoSerializer(photos, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Event.DoesNotExist:
+        return Response({"error": "Event not found."}, status=status.HTTP_404_NOT_FOUND)
