@@ -1,5 +1,3 @@
-from multiprocessing import managers
-from tkinter.tix import Tree
 from rest_framework import serializers
 
 from ngo.models import NGOEntity
