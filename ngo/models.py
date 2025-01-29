@@ -1,6 +1,5 @@
 from django.db import models
-
-from shared.models import Team
+from shared.constants import SocialMedia, ContactType
 
 class NGOEntity(models.Model):
     name = models.TextField()
@@ -12,4 +11,22 @@ class NGOEntity(models.Model):
     total_ratings = models.PositiveIntegerField(default=0)
     total_xp = models.IntegerField(default=0)
     ngo_profile_gallery = models.ManyToManyField('shared.Photo', related_name='ngo_gallery', blank=True)
-    focus_teams = models.ManyToManyField(Team, related_name='ngo_focus_teams', null=True, blank=True)
+    focus_teams = models.ManyToManyField('shared.Team', related_name='ngo_focus_teams', null=True, blank=True)
+
+class SocialMedia(models.Model):
+    ngo = models.ForeignKey(NGOEntity, related_name="social_media", on_delete=models.CASCADE)
+    platform = models.CharField(max_length=50, choices=SocialMedia.choices)
+    url = models.URLField()
+    
+    def __str__(self):
+        return f"{self.platform} for {self.ngo.name}"
+
+class Contact(models.Model):
+    ngo = models.ForeignKey(NGOEntity, related_name="contact_options", on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, blank=True, null=True)  
+    contact_type = models.CharField(max_length=20, choices=ContactType.choices)
+    contact_info = models.CharField(max_length=100) 
+
+    def __str__(self):
+        return f"{self.contact_type.capitalize()}: {self.contact_info} for {self.ngo.name}"
+

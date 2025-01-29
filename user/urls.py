@@ -20,5 +20,5 @@ urlpatterns = [
     path('api/users/<int:user_id>/events/<int:event_id>/apply/', views.apply_to_event, name='apply-to-event'),
     path('api/users/<int:user_id>/events/<int:event_id>/save/', views.save_event, name='save_event'),
     path('api/users/<int:user_id>/events/', views.get_user_events, name='get-user=events'),
-    path('api/user/edit/', views.edit_user_profile, name="edit-user-profile")
+    path('api/users/edit/', views.edit_user_profile, name="edit-user-profile")
 ]

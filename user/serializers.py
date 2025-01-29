@@ -1,9 +1,10 @@
+from datetime import date
 import importlib
 from rest_framework import serializers
 from events.serializers import TeamSerializer
 from shared.serializers import PhotoSerializer
 from shared.models import Location
-from .models import Donation, Goal, NGOEntity, CustomUser, Petition, Post, UserGoal
+from .models import Donation, Goal, NGOEntity, CustomUser, Petition, Post, UserGoal, UserReview, Week, WeeklyUserStats
 from rest_framework.serializers import ModelSerializer
 from shared.serializers import AchievementsSerializer, CompetencesSerializer
 from django.db.models import QuerySet
@@ -37,18 +38,6 @@ class PostSerializer(ModelSerializer):
         model = Post()
         fields = '__all__'
 
-# class NGOProfileSerializer(ModelSerializer):
-#     ngo_profile_gallery = PhotoSerializer(many=True)
-
-#     def get_focus_teams(self, obj):
-#         # Using importlib to import TeamSerializer lazily
-#         TeamSerializer = importlib.import_module('events.serializers').TeamSerializer
-#         return TeamSerializer(obj.focus_teams, many=True).data
-
-#     class Meta:
-#         model = NGOEntity()
-#         fields = '__all__'
-
 class UserStatsSerializer(serializers.Serializer):
     xp_earned = serializers.IntegerField()
     rank = serializers.IntegerField()
@@ -59,23 +48,6 @@ class UserXPSerializer(serializers.Serializer):
 
 class UserStreakSerializer(serializers.Serializer):
     current_streak = serializers.IntegerField()
-
-class UserProfileSerializer(ModelSerializer):
-    following = serializers.SerializerMethodField()
-    followers = serializers.SerializerMethodField()
-    gained_competences = CompetencesSerializer(many=True, read_only=True)
-    gallery_photos = PhotoSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = CustomUser
-        fields = ["name", "surname", "following", "followers", "bio", "focus_teams", "gallery_photos",
-        "gained_competences"]
-
-    def get_following(self, obj):
-        return obj.following.count()
-
-    def get_followers(self, obj):
-        return obj.followers.count()
 
 class FriendsAppliedSerializer(ModelSerializer):
     class Meta:
@@ -121,22 +93,42 @@ class UserGoalSerializer(ModelSerializer):
     class Meta:
         model = UserGoal
         fields = '__all__'
-
+        
 class CustomUserSerializer(serializers.ModelSerializer):
     following = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
     gained_competences = CompetencesSerializer(many=True, read_only=True)
     gained_achievements = AchievementsSerializer(many=True, read_only=True)
-    gallery_photos = PhotoSerializer(many=True, read_only=True)  # Related to the CustomUser (user_profile_gallery)
+    event_gallery = PhotoSerializer(many=True, read_only=True)
     created_events = serializers.SerializerMethodField()
+    focus_teams = TeamSerializer(many=True)
+    user_photos = PhotoSerializer(many=True, read_only=True, source="user_personal_gallery")
+    current_streak = serializers.IntegerField(source="userstreak.current_streak", read_only=True)
+    current_league = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
         fields = [
-            "email", "name", "surname", "total_xp", "profile_image_url", 
-            "bio", "birthday", "number_top_finishes", "following", 
-            "followers", "gained_competences", "gained_achievements", "gallery_photos", "created_events"
+            "email", "name", "surname", "total_xp", "profile_image_url", "user_photos",
+            "bio", "birthday", "number_top_finishes", "following", "focus_teams",
+            "followers", "gained_competences", "gained_achievements", "event_gallery", "created_events",
+            "current_streak", "current_league"
         ]
+    
+    def get_current_league(self, obj):
+        today = date.today()
+        
+        # Get the current active week
+        current_week = Week.objects.filter(start__lte=today, end__gte=today).first()
+        if not current_week:
+            return None
+
+        # Find the user's stats for the current week
+        user_stats = WeeklyUserStats.objects.filter(user=obj, week=current_week).first()
+        if not user_stats:
+            return None
+
+        return current_week.league  # Return the league of the current week
 
     def get_following(self, obj):
         # Return the count of following users

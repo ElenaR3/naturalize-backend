@@ -6,7 +6,7 @@ from events.models import Achievements, Event
 from events.serializers import AchievementsSerializer, EventSerializer, UserEventsCalendar
 from shared.models import Competences
 from user.models import CustomUser, Donation, Petition, Post, UserEventInteraction, UserGoal, WeeklyUserStats, UserStreak, Week, CompletedEvents
-from .serializers import CompetencesSerializer, CustomUserSerializer, DonationSerializer, PetitionSerializer, PostSerializer, UserEditSerializer, UserGoalSerializer, UserPostSerializer, UserProfileSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
+from .serializers import CompetencesSerializer, CustomUserSerializer, DonationSerializer, PetitionSerializer, PostSerializer, UserEditSerializer, UserGoalSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from shared.constants import EventEnrollementStatus

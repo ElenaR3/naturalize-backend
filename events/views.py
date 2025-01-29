@@ -53,8 +53,7 @@ def getMapMarkers(request):
 
 @api_view(['GET'])
 def getEvent(request, pk):
-    # event = Event.objects.get(id=pk)
-    event = Event.objects.prefetch_related('gallery_photos').get(id=pk)
+    event = Event.objects.prefetch_related('event_gallery').get(id=pk)
 
     serializer = EventSerializer(event, many = False)
     return Response(serializer.data)
@@ -145,7 +144,7 @@ def get_event_gallery(request, event_id):
     try:
         event = Event.objects.get(id=event_id)
 
-        photos = event.gallery_photos.all()
+        photos = event.event_gallery.all()
 
         serializer = PhotoSerializer(photos, many=True)
 

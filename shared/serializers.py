@@ -1,6 +1,10 @@
+import imp
 from rest_framework import serializers
 
 from shared.models import Achievements, Competences, Photo, Team
+from shared.constants import SocialMedia
+from ngo.models import Contact, SocialMedia
+from user.models import UserReview
 
 class TeamSerializer(serializers.ModelSerializer):
 
@@ -40,3 +44,24 @@ class CompetencesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Competences
         fields = '__all__'
+
+class UserReviewSerializer(serializers.ModelSerializer):
+    reviewer_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserReview
+        fields = ["reviewer_name", "review_comment", "review_rating", "date_reviewed"]
+
+    def get_reviewer_name(self, obj):
+        user = obj.user_reviewer
+        return f"{user.name} {user.surname}"
+
+class SocialMediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialMedia
+        fields = ['platform', 'url']
+
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = ['ngo', 'contact_type', 'contact_info']

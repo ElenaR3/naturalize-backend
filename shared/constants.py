@@ -11,3 +11,13 @@ class EventEnrollementStatus(models.TextChoices):
         ACCEPTED = 'accepted', 'Accepted'
         WAITLISTED = 'waitlisted', 'Waitlisted'
         SAVED = 'saved', 'Saved'
+
+class SocialMedia(models.TextChoices):
+        INSTAGRAM = 'Instagram', 'Instagram' 
+        LINKEDIN = 'LinkedIn', 'LinkedIn'
+        TIKTOK = 'TikTok', 'TikTok'
+        FACEBOOK = 'Facebook', 'Facebook'
+    
+class ContactType(models.TextChoices):
+        PHONE_NUMBER = 'Phone', 'Phone'
+        MAIL_ADDRESS = 'E-mail', 'E-mail'

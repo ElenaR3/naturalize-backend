@@ -21,9 +21,11 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class MapMarkerSerializer(serializers.ModelSerializer):
     location = LocationSerializer()
+    team = TeamSerializer(many=True)
     class Meta:
         model = Event
-        fields = ['id', 'eventName', 'markerType', 'eventDescription', 'location', 'team']
+        fields = ['id', 'eventName', 'markerType', 'eventDescription', 
+                                 'location', 'team', 'main_image_url']
 
 class CompetencesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,7 +38,7 @@ class EventSerializer(serializers.ModelSerializer):
     main_image_url = serializers.SerializerMethodField()
     
     location = LocationSerializer()
-    gallery_photos = PhotoSerializer(source='event_gallery', many=True, read_only=True)
+    event_gallery = PhotoSerializer(many=True, read_only=True)
     team = TeamSerializer(many=True)
     
     achievements = AchievementsSerializer(many=True)
@@ -85,7 +87,7 @@ class UserEventsCalendar(serializers.ModelSerializer):
     endDate = serializers.SerializerMethodField()
 
     location = LocationSerializer()
-    gallery_photos = PhotoSerializer(many=True) 
+    event_gallery = PhotoSerializer(many=True) 
     achievements = AchievementsSerializer(many=True)
     competences = CompetencesSerializer(many=True, read_only=True)
     organized_by = NGOProfileSerializer()

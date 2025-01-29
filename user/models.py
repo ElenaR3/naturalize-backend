@@ -174,12 +174,23 @@ class Post(models.Model):
     created_by_ngo = models.ForeignKey(NGOEntity, on_delete=models.CASCADE, null=True, blank=True)
 
 class UserReview(models.Model):
-    user_reviewer = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True)
-    reviewed_ngo = models.OneToOneField(NGOEntity, on_delete=models.CASCADE, null=True, blank=True)
-    reviewed_store = models.OneToOneField(Store, on_delete=models.CASCADE, null=True, blank=True)
+    user_reviewer = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    reviewed_ngo = models.ForeignKey(NGOEntity, on_delete=models.CASCADE, related_name="user_reviews", null=True, blank=True)
+    reviewed_store = models.ForeignKey(Store, on_delete=models.CASCADE, null=True, blank=True)
     review_comment = models.TextField()
-    reviewed_rating = models.FloatField()
-    date_reviewed = models.DateField()
+    review_rating = models.FloatField()
+    date_reviewed = models.DateField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    models.Q(reviewed_ngo__isnull=False, reviewed_store__isnull=True) |
+                    models.Q(reviewed_ngo__isnull=True, reviewed_store__isnull=False)
+                ),
+                name="only_one_reviewed_entity",
+            )
+        ]
 
 class Product(models.Model):
     name = models.TextField()

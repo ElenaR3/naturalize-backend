@@ -1,6 +1,5 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-
 from .constants import TeamChoices
 
 class Competences(models.Model):
@@ -12,7 +11,7 @@ class Achievements(models.Model):
     name = models.TextField()
     description = models.TextField()
     xpGiven = models.IntegerField()
-    logo = models.URLField(blank=True)
+    logo = models.URLField(null=True, blank=True)
 
 class Location(models.Model):
     latitude = models.FloatField()
@@ -69,7 +68,6 @@ class PhotoBase(models.Model):
             raise ValidationError("A photo must belong to either a user, NGO, or an event.")
         if self.photo_by_user and self.photo_by_ngo:
             raise ValidationError("A photo cannot belong to both a user and an NGO.")
-    
     
 class Photo(PhotoBase):
     pass
