@@ -1,6 +1,10 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from .constants import TeamChoices
+import boto3
+from backend import settings
+from PIL import Image
+import io
 
 class Competences(models.Model):
     name = models.TextField()
@@ -53,7 +57,8 @@ class PhotoBase(models.Model):
         null=True
     )
 
-    image = models.URLField()
+    large_image = models.URLField()
+    thumbnail_image = models.URLField(blank=True, null=True)
     caption = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     

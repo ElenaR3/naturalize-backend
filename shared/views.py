@@ -1,1 +1,164 @@
-# Create your views here.
+from sys import float_repr_style
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+import boto3
+from PIL import Image
+import io
+# from django.conf import settings
+from backend import settings
+from .models import Photo
+from .serializers import PhotoSerializer
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
+def upload_photo_ngo(request):
+    file = request.FILES.get('file')
+    caption = request.data.get('caption', '')
+    photo_by_ngo = request.data.get('ngo_id')
+
+    if not file or not photo_by_ngo:
+        return Response({"error": "File and NGO ID are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create an S3 client to upload the file
+    s3 = boto3.client('s3',
+                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+
+    # Add folder path to the key (e.g., "ngos/")
+    folder = "ngo/"  # Set your folder path here
+    file_key = f"{folder}{file.name}"
+
+    # Upload the original file to S3
+    file_content = io.BytesIO(file.read())
+    s3.upload_fileobj(file_content, bucket_name, file_key, ExtraArgs={'ContentType': file.content_type})
+
+    # Generate thumbnail
+    # Create a new BytesIO object to avoid reusing the already "read" file object
+    thumb_io = io.BytesIO()
+    image = Image.open(file)
+    image.thumbnail((200, 200))  # Resize to 200x200
+    image.save(thumb_io, format='JPEG')
+    thumb_io.seek(0)  # Make sure to reset the pointer before uploading
+
+    # Upload the thumbnail with folder path
+    thumbnail_key = f"{folder}thumbnails/{file.name}"
+    s3.put_object(Bucket=bucket_name,
+                  Key=thumbnail_key,
+                  Body=thumb_io.getvalue(),
+                  ContentType='image/jpeg')
+
+    # Save to the database with correct URLs
+
+    photo = Photo.objects.create(
+    large_image=f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{file_key}",
+    thumbnail_image=f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{thumbnail_key}",
+    caption=caption,
+    photo_by_ngo_id=photo_by_ngo
+    )
+
+    return Response(PhotoSerializer(photo).data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
+def upload_photo_user(request):
+    file = request.FILES.get('file')
+    caption = request.data.get('caption', '')
+    photo_by_user = request.data.get('user_id')
+
+    if not file or not photo_by_user:
+        return Response({"error": "File and User ID are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create an S3 client to upload the file
+    s3 = boto3.client('s3',
+                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+
+    # Add folder path to the key (e.g., "ngos/")
+    folder = "user/"  # Set your folder path here
+    file_key = f"{folder}{file.name}"
+
+    # Upload the original file to S3
+    file_content = io.BytesIO(file.read())
+    s3.upload_fileobj(file_content, bucket_name, file_key, ExtraArgs={'ContentType': file.content_type})
+
+    # Generate thumbnail
+    # Create a new BytesIO object to avoid reusing the already "read" file object
+    thumb_io = io.BytesIO()
+    image = Image.open(file)
+    image.thumbnail((200, 200))  # Resize to 200x200
+    image.save(thumb_io, format='JPEG')
+    thumb_io.seek(0)  # Make sure to reset the pointer before uploading
+
+    # Upload the thumbnail with folder path
+    thumbnail_key = f"{folder}thumbnails/{file.name}"
+    s3.put_object(Bucket=bucket_name,
+                  Key=thumbnail_key,
+                  Body=thumb_io.getvalue(),
+                  ContentType='image/jpeg')
+
+    # Save to the database with correct URLs
+
+    photo = Photo.objects.create(
+    large_image=f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{file_key}",
+    thumbnail_image=f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{thumbnail_key}",
+    caption=caption,
+    photo_by_user_id=photo_by_user
+    )
+
+    return Response(PhotoSerializer(photo).data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
+def upload_photo_event(request):
+    file = request.FILES.get('file')
+    caption = request.data.get('caption', '')
+    event_photo = request.data.get('event_id')
+
+    if not file or not event_photo:
+        return Response({"error": "File and Event ID are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create an S3 client to upload the file
+    s3 = boto3.client('s3',
+                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+
+    # Add folder path to the key (e.g., "ngos/")
+    folder = "event/"  # Set your folder path here
+    file_key = f"{folder}{file.name}"
+
+    # Upload the original file to S3
+    file_content = io.BytesIO(file.read())
+    s3.upload_fileobj(file_content, bucket_name, file_key, ExtraArgs={'ContentType': file.content_type})
+
+    # Generate thumbnail
+    # Create a new BytesIO object to avoid reusing the already "read" file object
+    thumb_io = io.BytesIO()
+    image = Image.open(file)
+    image.thumbnail((200, 200))  # Resize to 200x200
+    image.save(thumb_io, format='JPEG')
+    thumb_io.seek(0)  # Make sure to reset the pointer before uploading
+
+    # Upload the thumbnail with folder path
+    thumbnail_key = f"{folder}thumbnails/{file.name}"
+    s3.put_object(Bucket=bucket_name,
+                  Key=thumbnail_key,
+                  Body=thumb_io.getvalue(),
+                  ContentType='image/jpeg')
+
+    # Save to the database with correct URLs
+
+    photo = Photo.objects.create(
+    large_image=f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{file_key}",
+    thumbnail_image=f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{thumbnail_key}",
+    caption=caption,
+    event_related_photo_id=event_photo
+    )
+
+    return Response(PhotoSerializer(photo).data, status=status.HTTP_201_CREATED)

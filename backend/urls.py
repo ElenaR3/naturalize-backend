@@ -9,5 +9,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('events.urls')),
     path('', include('user.urls')),
-    path('', include('ngo.urls'))
+    path('', include('ngo.urls')),
+    path('', include('shared.urls'))
 ]

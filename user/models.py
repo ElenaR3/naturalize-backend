@@ -82,6 +82,7 @@ class Donation(models.Model):
     avg_rating = models.FloatField()
     xp_given = models.IntegerField()
     start_date = models.DateField()
+    end_date = models.DateField(null=True)
     about = models.TextField()
     # to be changed
     # impact_gallery = models.ForeignKey(PhotoBase, on_delete=models.CASCADE, related_name="donation_impact_gallery") 
@@ -89,7 +90,7 @@ class Donation(models.Model):
     about_creator = models.TextField()
     location = models.OneToOneField(Location, on_delete=models.CASCADE)
     saved_donations_by_users = models.ManyToManyField(CustomUser, null=True, blank=True, related_name='saved_donations_by_users')
-    friends_that_donated = models.IntegerField(default=0)
+    donators_count = models.IntegerField(default=0)
 
 class Week(models.Model):
     LEAGUE_CHOICES = [
