@@ -1,5 +1,5 @@
 from django.urls import path
-from user.views import GetAllEvents, GetDonations, GetPetitions, RegisterView, UserFeed, UserGoalList, UserStatsView, edit_user_profile, get_user_profile
+from user.views import GetAllEvents, GetDonations, GetPetitions, RegisterView, UserFeed, UserStatsView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -16,9 +16,10 @@ urlpatterns = [
     path('api/users/userProfile/<int:user_id>', views.get_user_profile, name="user_profile"),
     path('api/petitions', GetPetitions.as_view(), name="user_petitions"),
     path('api/donations', GetDonations.as_view(), name="user_donations"),
-    path('api/goals', UserGoalList.as_view(), name="user_goals"),
     path('api/users/<int:user_id>/events/<int:event_id>/apply/', views.apply_to_event, name='apply-to-event'),
     path('api/users/<int:user_id>/events/<int:event_id>/save/', views.save_event, name='save_event'),
     path('api/users/<int:user_id>/events/', views.get_user_events, name='get-user=events'),
-    path('api/users/edit/', views.edit_user_profile, name="edit-user-profile")
+    path('api/users/edit/', views.edit_user_profile, name="edit-user-profile"),
+    path('api/users/active-goal/<int:user_id>', views.get_user_active_goal, name="get-user-active-goal"),
+    path('api/users/animal-collection', views.get_animal_collection, name="animal-collection")
 ]

@@ -4,7 +4,7 @@ from rest_framework import serializers
 from events.serializers import TeamSerializer
 from shared.serializers import PhotoSerializer
 from shared.models import Location
-from .models import Donation, Goal, NGOEntity, CustomUser, Petition, Post, UserGoal, UserReview, Week, WeeklyUserStats
+from .models import Donation, Goal, CustomUser, Petition, Post, UserGoal, Week, WeeklyUserStats
 from rest_framework.serializers import ModelSerializer
 from shared.serializers import AchievementsSerializer, CompetencesSerializer
 from django.db.models import QuerySet
@@ -92,7 +92,7 @@ class UserGoalSerializer(ModelSerializer):
 
     class Meta:
         model = UserGoal
-        fields = '__all__'
+        fields = ['goal', 'xp_accumulated', 'level']
         
 class CustomUserSerializer(serializers.ModelSerializer):
     following = serializers.SerializerMethodField()

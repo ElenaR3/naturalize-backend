@@ -1,10 +1,11 @@
+from asyncio import constants
+from types import TracebackType
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from ngo.models import NGOEntity
 from shared.models import Competences, Location, Team
 from events.models import Achievements, Event
-from shared.constants import EventEnrollementStatus
-from shared.models import Photo
+from shared.constants import AnimalCategory, EventEnrollementStatus, BabyAnimals
 
 class UserManager(BaseUserManager):
 
@@ -135,11 +136,11 @@ class UserStreak(models.Model):
         return f"{self.user.username} - Current Streak: {self.current_streak}, Longest Streak: {self.longest_streak}"
 
 class Goal(models.Model):
-    name = models.TextField()
+    name = models.TextField(choices=BabyAnimals.choices)
     description = models.TextField()
-    level = models.IntegerField(default=1)
     xp_required = models.IntegerField(default=0)
     image_url = models.TextField(blank=True, null=True)
+    category = models.TextField(choices=AnimalCategory.choices, blank=True, null=True)
 
 class UserGoal(models.Model):
     STATUS_CHOICES = [
@@ -151,6 +152,7 @@ class UserGoal(models.Model):
     goal = models.ForeignKey(Goal, on_delete=models.CASCADE)
     xp_accumulated = models.PositiveIntegerField(default=0)
     status = models.IntegerField(choices=STATUS_CHOICES, default=1)
+    level = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

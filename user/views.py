@@ -5,8 +5,8 @@ from rest_framework.decorators import api_view
 from events.models import Achievements, Event
 from events.serializers import AchievementsSerializer, EventSerializer, UserEventsCalendar
 from shared.models import Competences
-from user.models import CustomUser, Donation, Petition, Post, UserEventInteraction, UserGoal, WeeklyUserStats, UserStreak, Week, CompletedEvents
-from .serializers import CompetencesSerializer, CustomUserSerializer, DonationSerializer, PetitionSerializer, PostSerializer, UserEditSerializer, UserGoalSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
+from user.models import CustomUser, Donation, Goal, Petition, Post, UserEventInteraction, UserGoal, WeeklyUserStats, UserStreak, Week, CompletedEvents
+from .serializers import CompetencesSerializer, CustomUserSerializer, DonationSerializer, GoalSerializer, PetitionSerializer, PostSerializer, UserEditSerializer, UserGoalSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from shared.constants import EventEnrollementStatus
@@ -141,14 +141,29 @@ class GetDonations(APIView):
         serializer = DonationSerializer(donations, many=True, context={'user': user})
         return Response(serializer.data)
 
-class UserGoalList(APIView):
-    def post(self, request):
-        data = request.data
-        user_id = data.get('user_id')
+@api_view(['GET'])
+def get_user_active_goal(request, user_id):
+    try:
+        # Get the user object based on user_id
+        current_goal = UserGoal.objects.filter(user_id=user_id, status=1).first()
+    except UserGoal.DoesNotExist:
+        return Response({"Error": "No active goal found."}, status=status.HTTP_404_NOT_FOUND)
 
-        user_goals = UserGoal.objects.filter(user_id=user_id)
-        serializer = UserGoalSerializer(user_goals, many=True)
-        return Response(serializer.data)
+    # Serialize the user object
+    serializer = UserGoalSerializer(current_goal)
+
+    # Return the serialized data
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_animal_collection(request):
+    all_goals = Goal.objects.all()
+
+    # Serialize the user object
+    serializer = GoalSerializer(all_goals, many=True)
+
+    # Return the serialized data
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 def apply_to_event(request, event_id, user_id):

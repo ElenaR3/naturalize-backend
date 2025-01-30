@@ -21,3 +21,14 @@ class SocialMedia(models.TextChoices):
 class ContactType(models.TextChoices):
         PHONE_NUMBER = 'Phone', 'Phone'
         MAIL_ADDRESS = 'E-mail', 'E-mail'
+
+class BabyAnimals(models.TextChoices):
+        MODERN_DRAGONS = 'Modern dragons', 'Modern dragons'
+        FORESTS_DEAD_MAN = "Forest's dead man", "Forest's dead man"
+        CUTIES = 'Cuties', 'Cuties'
+        ALIEN_PREDATOR = 'Alien predator', 'Alien predator'
+
+class AnimalCategory(models.TextChoices):
+        HORROR = 'Horror', 'Horror'
+        FANTASY = 'Fantasy', 'Fantasy'
+        LEGENDARY = 'Legendary', 'Legendary'
