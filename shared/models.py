@@ -1,10 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from .constants import TeamChoices
-import boto3
-from backend import settings
-from PIL import Image
-import io
 
 class Competences(models.Model):
     name = models.TextField()
