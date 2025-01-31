@@ -8,6 +8,15 @@ from .models import Donation, Goal, CustomUser, Petition, Post, UserGoal, Week, 
 from rest_framework.serializers import ModelSerializer
 from shared.serializers import AchievementsSerializer, CompetencesSerializer
 from django.db.models import QuerySet
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        
+        data["user_id"] = self.user.id
+
+        return data
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:

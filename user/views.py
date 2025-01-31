@@ -6,13 +6,16 @@ from events.models import Achievements, Event
 from events.serializers import AchievementsSerializer, EventSerializer, UserEventsCalendar
 from shared.models import Competences
 from user.models import CustomUser, Donation, Goal, Petition, Post, UserEventInteraction, UserGoal, WeeklyUserStats, UserStreak, Week, CompletedEvents
-from .serializers import CompetencesSerializer, CustomUserSerializer, DonationSerializer, GoalSerializer, PetitionSerializer, PostSerializer, UserEditSerializer, UserGoalSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
+from .serializers import CompetencesSerializer, CustomTokenObtainPairSerializer, CustomUserSerializer, DonationSerializer, GoalSerializer, PetitionSerializer, PostSerializer, UserEditSerializer, UserGoalSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from shared.constants import EventEnrollementStatus
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
+from rest_framework_simplejwt.views import TokenObtainPairView
 
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 # view for registering users
 class RegisterView(APIView):
