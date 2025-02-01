@@ -13,7 +13,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-        
+
         data["user_id"] = self.user.id
 
         return data
@@ -148,9 +148,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
         return obj.followers.count()
 
     def get_created_events(self, obj):
-        # due to circular import 
         from events.serializers import EventSerializer
         events = obj.created_events.all() if isinstance(obj.created_events, QuerySet) else [obj.created_events]
+        events = [event for event in events if event is not None]
         return EventSerializer(events, many=True).data if events else []
 
 class UserEditSerializer(serializers.ModelSerializer):

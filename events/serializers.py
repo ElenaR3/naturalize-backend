@@ -37,7 +37,7 @@ class EventSerializer(serializers.ModelSerializer):
     endDate = serializers.SerializerMethodField()
     main_image_url = serializers.SerializerMethodField()
     
-    location = LocationSerializer()
+    location = LocationSerializer(required=False)
     event_gallery = PhotoSerializer(many=True, read_only=True)
     team = TeamSerializer(many=True)
     
@@ -57,7 +57,7 @@ class EventSerializer(serializers.ModelSerializer):
     
     def get_main_image_url(self, instance):
         return instance.main_image_url
-    
+
 class EventListView(generics.ListAPIView):
     queryset = Event.objects.all()
     serializer_class = MapMarkerSerializer
