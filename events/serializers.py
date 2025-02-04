@@ -44,6 +44,7 @@ class EventSerializer(serializers.ModelSerializer):
     achievements = AchievementsSerializer(many=True)
     competences = CompetencesSerializer(many=True, read_only=True)
     organized_by = NGOProfileSerializer()
+    status = serializers.CharField(read_only=True) 
 
     class Meta:
         model = Event

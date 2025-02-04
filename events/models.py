@@ -6,7 +6,6 @@ class Event(models.Model):
         (1, 'VO'),
         (2, 'SE'),
     ]
-    #id = models.IntegerField(primary_key=True)
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True) # take a snapshot only when created
     startDate = models.DateTimeField(null=True, blank=True)

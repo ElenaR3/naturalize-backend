@@ -13,6 +13,7 @@ from shared.constants import EventEnrollementStatus
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.db.models import OuterRef, Subquery
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -229,13 +230,15 @@ def get_user_events(request, user_id):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Filter events by status
-    interactions = UserEventInteraction.objects.filter(user=user)
-    if status_filter:
-        interactions = interactions.filter(status=status_filter)
+    user_status_subquery = UserEventInteraction.objects.filter(
+        user=user, event=OuterRef("id")
+    ).values("status")[:1]
 
-    # Serialize the events
-    events = [interaction.event for interaction in interactions]
+    events = Event.objects.filter(usereventinteraction__user=user).annotate(
+        status=Subquery(user_status_subquery)
+    )
+    if status_filter:
+        events = events.filter(usereventinteraction__status=status_filter)
     serializer = EventSerializer(events, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)

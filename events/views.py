@@ -151,3 +151,12 @@ def get_event_gallery(request, event_id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Event.DoesNotExist:
         return Response({"error": "Event not found."}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+def get_events_by_ngo(request, ngo_id):
+    try:
+        events = Event.objects.filter(organized_by_id=ngo_id)
+        serializer = EventSerializer(events, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -32,10 +32,11 @@ class CompetencesSerializer(serializers.ModelSerializer):
 
 class UserReviewSerializer(serializers.ModelSerializer):
     reviewer_name = serializers.SerializerMethodField()
+    reviewer_photo = serializers.ReadOnlyField(source="user_reviewer.profile_image_url")
 
     class Meta:
         model = UserReview
-        fields = ["reviewer_name", "review_comment", "review_rating", "date_reviewed"]
+        fields = ["reviewer_name", "review_comment", "review_rating", "date_reviewed", "reviewer_photo"]
 
     def get_reviewer_name(self, obj):
         user = obj.user_reviewer
