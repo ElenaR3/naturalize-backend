@@ -1,10 +1,8 @@
 from datetime import date
-import importlib
 from rest_framework import serializers
-from events.serializers import TeamSerializer
 from shared.serializers import PhotoSerializer
 from shared.models import Location
-from .models import Donation, Goal, CustomUser, Petition, Post, UserGoal, Week, WeeklyUserStats
+from .models import Donation, Goal, CustomUser, Petition, Post, UserGoal, Week, WeeklyUserStats, ExperienceDevelopmentStage
 from rest_framework.serializers import ModelSerializer
 from shared.serializers import AchievementsSerializer, CompetencesSerializer
 from django.db.models import QuerySet
@@ -94,7 +92,7 @@ class DonationSerializer(ModelSerializer):
 class GoalSerializer(ModelSerializer):
     class Meta:
         model = Goal
-        fields = '__all__' 
+        fields = ['name', 'description', 'xp_required', 'category']
 
 class UserGoalSerializer(ModelSerializer):
     goal = GoalSerializer()
@@ -102,7 +100,13 @@ class UserGoalSerializer(ModelSerializer):
     class Meta:
         model = UserGoal
         fields = ['goal', 'xp_accumulated', 'level']
-        
+
+class ExperienceDevelopmentStageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ExperienceDevelopmentStage
+        fields = ['name', 'next_stage']
+
 class CustomUserSerializer(serializers.ModelSerializer):
     following = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
@@ -110,10 +114,12 @@ class CustomUserSerializer(serializers.ModelSerializer):
     gained_achievements = AchievementsSerializer(many=True, read_only=True)
     event_gallery = PhotoSerializer(many=True, read_only=True)
     created_events = serializers.SerializerMethodField()
-    focus_teams = TeamSerializer(many=True)
+    focus_teams = serializers.SerializerMethodField()
+    
     user_photos = PhotoSerializer(many=True, read_only=True, source="user_personal_gallery")
     current_streak = serializers.IntegerField(source="userstreak.current_streak", read_only=True)
     current_league = serializers.SerializerMethodField()
+    xp_stage = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
@@ -121,7 +127,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "email", "name", "surname", "total_xp", "profile_image_url", "user_photos",
             "bio", "birthday", "number_top_finishes", "following", "focus_teams",
             "followers", "gained_competences", "gained_achievements", "event_gallery", "created_events",
-            "current_streak", "current_league"
+            "current_streak", "current_league", "causes", "expectations", "xp_stage"
         ]
     
     def get_current_league(self, obj):
@@ -153,8 +159,19 @@ class CustomUserSerializer(serializers.ModelSerializer):
         events = [event for event in events if event is not None]
         return EventSerializer(events, many=True).data if events else []
 
+    def get_focus_teams(self, obj):
+        teams = obj.focus_teams.all()
+        return [team.get_name_display() for team in teams]
+
+    def get_xp_stage(self, obj):
+        current_stage = obj.current_stage
+        next_stage = current_stage.next_stage if hasattr(current_stage, "next_stage") else None
+        return {
+            "current_stage": current_stage.name,
+            "next_stage": next_stage.name if next_stage else None
+        }
 class UserEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['email', 'name', 'surname', 'total_xp', 'profile_image_url', 
-                  'birthday', 'bio', 'number_top_finishes','focus_teams']
+                  'birthday', 'bio', 'number_top_finishes','focus_teams', 'causes', 'expectations']

@@ -148,25 +148,20 @@ class GetDonations(APIView):
 @api_view(['GET'])
 def get_user_active_goal(request, user_id):
     try:
-        # Get the user object based on user_id
         current_goal = UserGoal.objects.filter(user_id=user_id, status=1).first()
     except UserGoal.DoesNotExist:
         return Response({"Error": "No active goal found."}, status=status.HTTP_404_NOT_FOUND)
 
-    # Serialize the user object
     serializer = UserGoalSerializer(current_goal)
 
-    # Return the serialized data
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 def get_animal_collection(request):
     all_goals = Goal.objects.all()
 
-    # Serialize the user object
     serializer = GoalSerializer(all_goals, many=True)
 
-    # Return the serialized data
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
@@ -212,7 +207,39 @@ def save_event(request, event_id, user_id):
 
     UserEventInteraction.objects.create(user=user, event=event, status='saved')
 
-    return Response({"message": "Event successfully saved."}, status=status.HTTP_201_CREATED)
+    return Response({"Message": "Event successfully saved."}, status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+def unsave_event(request, event_id, user_id):
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"Error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        event = Event.objects.get(id=event_id)
+    except Event.DoesNotExist:
+        return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    saved_event = UserEventInteraction.objects.filter(user=user, event=event, status='saved').first()
+
+    if saved_event:
+        saved_event.delete()
+        return Response({"Message": "Event was successfully unsaved."}, status=status.HTTP_204_NO_CONTENT)
+    else:
+        return Response({"Message": "This event was not saved before."}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+def delete_user(request, user_id):
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"Error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if user:
+        user.delete()
+        return Response({"Message": "User profile was successfully deleted."}, status=status.HTTP_204_NO_CONTENT)
+
 
 @api_view(['GET'])
 def get_user_events(request, user_id):
@@ -254,3 +281,77 @@ def edit_user_profile(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def choose_user_goal(request, user_id, goal_id):
+    try:
+        if not goal_id and not user_id:
+            return Response({'Error': 'goal_id and user_id are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        goal = Goal.objects.get(id=goal_id)
+        user = CustomUser.objects.get(id=user_id)
+
+        if UserGoal.objects.filter(user=user, goal=goal, status=1).exists():
+            return Response({'error': 'This goal is already active.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_goal = UserGoal.objects.create(
+            user=user,
+            goal=goal,
+            xp_accumulated=0,
+            status=1,
+        )
+
+        return Response({
+            'status': 'Success',
+            'message': f'You have chosen the goal: {goal.name}',
+        }, status=status.HTTP_201_CREATED)
+
+    except Goal.DoesNotExist:
+        return Response({'error': 'Goal not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+def add_user_xp_to_goal(request):
+    try:
+        goal_id = request.data.get('goal_id')
+        xp_to_add = request.data.get('xp_to_add')
+        user_id = request.data.get('user_id')
+
+        if not goal_id or not xp_to_add:
+            return Response({'Error': 'goal_id and xp_to_add are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        goal = Goal.objects.get(id=goal_id)
+        user = CustomUser.objects.get(id=user_id)
+
+        try:
+            user_goal = UserGoal.objects.get(
+                user=user,
+                goal=goal,
+                status=1
+            )
+        except UserGoal.DoesNotExist:
+            return Response({'Error': f'No active goal with name {goal.name} exists for user with id {user.id}.'}, status=status.HTTP_404_NOT_FOUND)
+
+        user_goal.xp_accumulated += xp_to_add
+
+        if user_goal.xp_accumulated >= goal.xp_required:
+            user_goal.status = 2
+            user_goal.save()
+            return Response({
+                'status': 'completed',
+                'goal_id': goal.id,
+                'xp_accumulated': user_goal.xp_accumulated
+            }, status=status.HTTP_200_OK)
+        else:
+            user_goal.save()
+            return Response({
+                'status': 'active',
+                'goal_id': goal.id,
+                'xp_accumulated': user_goal.xp_accumulated
+            }, status=status.HTTP_200_OK)
+
+    except Goal.DoesNotExist:
+        return Response({'Error': 'Goal not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'Error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

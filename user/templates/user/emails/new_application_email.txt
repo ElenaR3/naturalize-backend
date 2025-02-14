@@ -1,0 +1,14 @@
+Hello,
+
+A new user has applied to your event "{{ event.eventName }}".
+
+User Details:
+- Email: {{ user.email }}
+
+Event Details:
+- Start Date: {{ event.startDate }}
+- End Date: {{ event.endDate }}
+- Location: {{ event.location.text }}
+
+Thank you,
+Greenie Team

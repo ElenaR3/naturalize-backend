@@ -23,7 +23,7 @@ class PhotoSerializer(serializers.ModelSerializer):
 class AchievementsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Achievements
-        fields = '__all__'
+        fields = ["type", "description", "xpGiven"]
 
 class CompetencesSerializer(serializers.ModelSerializer):
     class Meta:

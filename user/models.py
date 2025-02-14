@@ -1,11 +1,58 @@
-from asyncio import constants
-from types import TracebackType
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from ngo.models import NGOEntity
 from shared.models import Competences, Location, Team
 from events.models import Achievements, Event
-from shared.constants import AnimalCategory, EventEnrollementStatus, BabyAnimals
+from shared.constants import AnimalCategory, EventEnrollementStatus, BabyAnimals, DevelopmentStage
+
+def get_default_development_stage():
+    # Try to get the default stage (ECO_PIONEER)
+    default_stage, created = ExperienceDevelopmentStage.objects.get_or_create(
+        name=DevelopmentStage.ECO_PIONEER,
+        defaults={
+            'xp_required': 350,  # or any other default
+            'previous_stage': None,  # No previous stage for ECO_PIONEER
+            'next_stage': None  # Initially, no next stage
+        }
+    )
+
+    # If ECO_PIONEER was created, set up BIOSPHERE_GUARDIAN
+    if created:
+        # Create the next stage (BIOSPHERE_GUARDIAN)
+        next_stage, _ = ExperienceDevelopmentStage.objects.get_or_create(
+            name=DevelopmentStage.BIOSPHERE_GUARDIAN,
+            defaults={
+                'xp_required': 500,  # or any other default
+                'previous_stage': default_stage  # ECO_PIONEER is the previous stage
+            }
+        )
+
+        # Set the next_stage for ECO_PIONEER
+        default_stage.next_stage = next_stage
+        default_stage.save()
+
+    return default_stage.id
+
+class ExperienceDevelopmentStage(models.Model):
+    name = models.CharField(max_length=50, choices=DevelopmentStage.choices)
+    xp_required = models.IntegerField(default=0)
+    previous_stage = models.OneToOneField(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='previous_stage_relation'
+    )
+    next_stage = models.OneToOneField(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='next_stage_relation'
+    )
+
+    def __str__(self):
+        return self.name
 
 class UserManager(BaseUserManager):
 
@@ -13,7 +60,7 @@ class UserManager(BaseUserManager):
 
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError('Email is Required')
+            raise ValueError('Email is required')
         user = self.model(email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -48,6 +95,16 @@ class CustomUser(AbstractUser):
     gained_competences = models.ManyToManyField(Competences, related_name='user_gained_competences', null=True, blank=True)
     gained_achievements = models.ManyToManyField(Achievements, related_name='user_gained_achievements', null=True, blank=True)
     created_events = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True, blank=True, related_name='events_created_by_user')
+    causes = models.CharField(max_length=1000, null=True, blank=True)
+    expectations = models.CharField(max_length=1000, null=True, blank=True)
+    current_stage = models.ForeignKey(
+        ExperienceDevelopmentStage,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        default=get_default_development_stage,
+        related_name='users_in_stage' # name for the reverse relation
+    )
 
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -99,7 +156,6 @@ class Week(models.Model):
         ('Silver', 'Silver'),
         ('Gold', 'Gold'),
         ('Shell', 'Shell')
-        # These need to be changed 
     ]
 
     start = models.DateField()
@@ -156,6 +212,13 @@ class UserGoal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def is_completed(self):
+        return self.xp_accumulated >= self.goal.xp_required
+
+    def save(self, *args, **kwargs):
+        if self.xp_accumulated >= self.goal.xp_required:
+            self.status = 2
+        super().save(*args, **kwargs)
 
 class CompletedEvents(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="completed_event")

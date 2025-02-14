@@ -1,3 +1,4 @@
+from .utils import get_starting_in
 from rest_framework import serializers
 from shared.models import Team
 from .models import Event, Location, Competences
@@ -12,7 +13,7 @@ class TeamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Team
-        fields = '__all__'
+        fields = ['name']
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,11 +22,20 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class MapMarkerSerializer(serializers.ModelSerializer):
     location = LocationSerializer()
-    team = TeamSerializer(many=True)
+    focus_teams = serializers.SerializerMethodField()
+    starting_in = serializers.SerializerMethodField()
+
     class Meta:
         model = Event
         fields = ['id', 'eventName', 'markerType', 'eventDescription', 
-                                 'location', 'team', 'main_image_url']
+                                 'location', 'main_image_url', 'focus_teams', 'starting_in']
+
+    def get_focus_teams(self, obj):
+        teams = obj.focus_teams.all()
+        return [team.get_name_display() for team in teams]
+    
+    def get_starting_in(self, obj):
+        return get_starting_in(obj.startDate, obj.endDate)
 
 class CompetencesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,12 +49,13 @@ class EventSerializer(serializers.ModelSerializer):
     
     location = LocationSerializer(required=False)
     event_gallery = PhotoSerializer(many=True, read_only=True)
-    team = TeamSerializer(many=True)
+    focus_teams = serializers.SerializerMethodField()
     
     achievements = AchievementsSerializer(many=True)
     competences = CompetencesSerializer(many=True, read_only=True)
     organized_by = NGOProfileSerializer()
     status = serializers.CharField(read_only=True) 
+    starting_in = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -58,6 +69,13 @@ class EventSerializer(serializers.ModelSerializer):
     
     def get_main_image_url(self, instance):
         return instance.main_image_url
+
+    def get_focus_teams(self, obj):
+        teams = obj.focus_teams.all()
+        return [team.get_name_display() for team in teams]
+
+    def get_starting_in(self, obj):
+        return get_starting_in(obj.startDate, obj.endDate)
 
 class EventListView(generics.ListAPIView):
     queryset = Event.objects.all()

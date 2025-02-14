@@ -8,7 +8,7 @@ class Competences(models.Model):
     logo = models.URLField(null=True, blank=True)
 
 class Achievements(models.Model):
-    name = models.TextField()
+    type = models.TextField()
     description = models.TextField()
     xpGiven = models.IntegerField()
     logo = models.URLField(null=True, blank=True)

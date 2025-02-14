@@ -10,5 +10,5 @@ urlpatterns = [
     path('', include('events.urls')),
     path('', include('user.urls')),
     path('', include('ngo.urls')),
-    path('', include('shared.urls'))
+    path('', include('shared.urls')),
 ]

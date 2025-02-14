@@ -32,3 +32,10 @@ class AnimalCategory(models.TextChoices):
         HORROR = 'Horror', 'Horror'
         FANTASY = 'Fantasy', 'Fantasy'
         LEGENDARY = 'Legendary', 'Legendary'
+
+class DevelopmentStage(models.TextChoices):
+        ECO_PIONEER = 'Eco Pioneer', 'Eco Pioneer'
+        BIOSPHERE_GUARDIAN ='Biosphere Guardian', 'Biosphere Guardian'
+        GAIA_EMISSARY = "Gaia's Emissary", "Gaia's Emissary"
+        PLANET_HEALER = "Planet Healer"
+        COSMIC_STEWARD = "Cosmic Steward"
