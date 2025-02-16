@@ -3,11 +3,13 @@ from rest_framework.response import Response
 
 from shared.models import Team, Competences
 from shared.serializers import TeamSerializer
+from user.models import CustomUser
 from .models import Event, Location
 from .serializers import CompetencesSerializer, EventSerializer, MapMarkerSerializer, LocationSerializer, PhotoSerializer
 from datetime import datetime
 from rest_framework import status
 from django.utils.timezone import make_aware
+from django.utils import timezone
 
 @api_view(['GET'])
 def getRoutes(request):
@@ -94,13 +96,16 @@ def deleteEvent(request, pk):
     event.delete()
     return Response("The event was deleted")
 
-@api_view(['POST'])
-def filter_upcoming_events(request):
+@api_view(['GET'])
+def filter_upcoming_events(request, user_id):
     """
     Filter events with start_date later than the provided current_date.
     """
     # Extract the current_date from the request data
-    current_date = request.data.get('current_date')
+
+    current_date = timezone.now().strftime("%Y-%m-%d") # YYYY-MM-DD
+
+    user = CustomUser.objects.get(id=user_id)
 
     if not current_date:
         return Response(
@@ -118,7 +123,7 @@ def filter_upcoming_events(request):
         )
 
     events = Event.objects.filter(startDate__gt=current_date)
-    serializer = EventSerializer(events, many=True)
+    serializer = EventSerializer(events, many=True, context={"user": user})
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 

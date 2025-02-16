@@ -20,7 +20,7 @@ def get_starting_in(startDate, endDate):
     if time_difference <= timedelta(hours=1):
         return "starting soon"
 
-    # Extract days, weeks, months, etc.
+    # Extract days, weeks, months
     days = time_difference.days
     weeks = days // 7
     months = days // 30

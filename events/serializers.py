@@ -1,7 +1,8 @@
+from user.models import UserEventInteraction, UserSavedEvent
 from .utils import get_starting_in
 from rest_framework import serializers
 from shared.models import Team
-from .models import Event, Location, Competences
+from .models import Event, Location, Competences, TRRDonation
 from shared.utils import format_datetime
 from ngo.serializers import NGOProfileSerializer
 from rest_framework import generics
@@ -40,7 +41,13 @@ class MapMarkerSerializer(serializers.ModelSerializer):
 class CompetencesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Competences
-        fields = '__all__'
+        fields = ['name', 'description']
+
+class TRRDonationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TRRDonation
+        fields = ['trr_number', 'bic', 'reference', 
+                  'recipient_name', 'recipient_address', 'purpose', 'purpose_code']
 
 class EventSerializer(serializers.ModelSerializer):
     startDate = serializers.SerializerMethodField()
@@ -54,8 +61,10 @@ class EventSerializer(serializers.ModelSerializer):
     achievements = AchievementsSerializer(many=True)
     competences = CompetencesSerializer(many=True, read_only=True)
     organized_by = NGOProfileSerializer()
-    status = serializers.CharField(read_only=True) 
+    status = serializers.SerializerMethodField()
     starting_in = serializers.SerializerMethodField()
+    is_saved = serializers.SerializerMethodField()
+    donation = TRRDonationSerializer(required=False)
 
     class Meta:
         model = Event
@@ -76,6 +85,25 @@ class EventSerializer(serializers.ModelSerializer):
 
     def get_starting_in(self, obj):
         return get_starting_in(obj.startDate, obj.endDate)
+
+    def get_is_saved(self, obj):
+        user = self.context.get("user", None)
+        if user:
+            return UserSavedEvent.objects.filter(user=user, event=obj).exists()
+        return None  # remove this field dynamically if there is no user in the context
+
+    def get_status(self, obj):
+        user = self.context.get("user", None)
+        if user:
+            interaction = UserEventInteraction.objects.filter(user=user, event=obj).first()
+            return interaction.status if interaction else None
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if self.context.get("user") is None:
+            data.pop("is_saved", None)  # Remove is_saved and status if no user is provided
+            data.pop("status", None)
+        return data
 
 class EventListView(generics.ListAPIView):
     queryset = Event.objects.all()

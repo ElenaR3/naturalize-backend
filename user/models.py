@@ -4,6 +4,7 @@ from ngo.models import NGOEntity
 from shared.models import Competences, Location, Team
 from events.models import Achievements, Event
 from shared.constants import AnimalCategory, EventEnrollementStatus, BabyAnimals, DevelopmentStage
+from .utils import add_xp_to_user
 
 def get_default_development_stage():
     # Try to get the default stage (ECO_PIONEER)
@@ -134,22 +135,6 @@ class Petition(models.Model):
     total_signs = models.IntegerField(default=0)
     friends_that_signed = models.IntegerField(default=0)
 
-class Donation(models.Model):
-    title = models.TextField()
-    created_by = models.ForeignKey(NGOEntity, on_delete=models.CASCADE, related_name='donation_creator')
-    avg_rating = models.FloatField()
-    xp_given = models.IntegerField()
-    start_date = models.DateField()
-    end_date = models.DateField(null=True)
-    about = models.TextField()
-    # to be changed
-    # impact_gallery = models.ForeignKey(PhotoBase, on_delete=models.CASCADE, related_name="donation_impact_gallery") 
-    image_url = models.TextField()
-    about_creator = models.TextField()
-    location = models.OneToOneField(Location, on_delete=models.CASCADE)
-    saved_donations_by_users = models.ManyToManyField(CustomUser, null=True, blank=True, related_name='saved_donations_by_users')
-    donators_count = models.IntegerField(default=0)
-
 class Week(models.Model):
     LEAGUE_CHOICES = [
         ('Bronze', 'Bronze'),
@@ -220,11 +205,6 @@ class UserGoal(models.Model):
             self.status = 2
         super().save(*args, **kwargs)
 
-class CompletedEvents(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="completed_event")
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="completed_event")
-    date_completed = models.DateField(auto_now=True)
-
 class Store(models.Model):
     about = models.TextField()
     followers = models.ManyToManyField(CustomUser, related_name='store_followers')
@@ -263,7 +243,21 @@ class Product(models.Model):
     product_image = models.URLField(blank=True, null=True)
     description = models.TextField()
 
+class UserSavedEvent(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'event')
+
 class UserEventInteraction(models.Model):
+    STATUS_POINTS = {
+        'waitlisted': 1,
+        'applied': 1,
+        'accepted': 5,
+        'completed': 50
+    }
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
@@ -272,11 +266,19 @@ class UserEventInteraction(models.Model):
 
     class Meta:
         constraints = [
-            # Allow multiple "saved" statuses
-            # Ensure only one application status (applied/accepted/waitlisted) per user-event
             models.UniqueConstraint(
                 fields=['user', 'event'],
-                condition=~models.Q(status='saved'),
                 name='unique_application_status_per_user_event',
             ),
         ]
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            previous = UserEventInteraction.objects.filter(pk=self.pk).only('status').first()
+            if previous and previous.status != self.status:
+                xp_earned = self.STATUS_POINTS.get(self.status, 0)
+                print(f"This is xp_earned {xp_earned}")
+                if xp_earned > 0:
+                    add_xp_to_user(self.user, xp_earned)
+
+        super().save(*args, **kwargs)

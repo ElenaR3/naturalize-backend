@@ -5,15 +5,14 @@ from rest_framework.decorators import api_view
 from events.models import Achievements, Event
 from events.serializers import AchievementsSerializer, EventSerializer, UserEventsCalendar
 from shared.models import Competences
-from user.models import CustomUser, Donation, Goal, Petition, Post, UserEventInteraction, UserGoal, WeeklyUserStats, UserStreak, Week, CompletedEvents
-from .serializers import CompetencesSerializer, CustomTokenObtainPairSerializer, CustomUserSerializer, DonationSerializer, GoalSerializer, PetitionSerializer, PostSerializer, UserEditSerializer, UserGoalSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
+from user.models import CustomUser, Goal, Petition, Post, UserEventInteraction, UserGoal, WeeklyUserStats, UserStreak, Week, UserSavedEvent
+from .serializers import CompetencesSerializer, CustomTokenObtainPairSerializer, CustomUserSerializer, GoalSerializer, PetitionSerializer, PostSerializer, UserEditSerializer, UserGoalSerializer, UserSerializer, UserStatsSerializer, UserStreakSerializer, UserXPSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from shared.constants import EventEnrollementStatus
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.db.models import OuterRef, Subquery
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -131,20 +130,6 @@ class GetPetitions(APIView):
         serializer = PetitionSerializer(petitions, many=True, context={'user': user})
         return Response(serializer.data)
 
-class GetDonations(APIView):
-    def post(self, request):
-        data = request.data
-        user_id = data.get('user_id')
-        try:
-            user = CustomUser.objects.get(id=user_id)
-        except CustomUser.DoesNotExist:
-            return Response({"error": "User not found"}, status=Stats.HTTP_404_NOT_FOUND)
-
-        donations = Donation.objects.all()
-        
-        serializer = DonationSerializer(donations, many=True, context={'user': user})
-        return Response(serializer.data)
-
 @api_view(['GET'])
 def get_user_active_goal(request, user_id):
     try:
@@ -183,6 +168,7 @@ def apply_to_event(request, event_id, user_id):
             )
 
     UserEventInteraction.objects.create(user=user, event=event, status='applied')
+    
     return Response({"Success": "You have successfully applied to the event."}, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
@@ -197,7 +183,7 @@ def save_event(request, event_id, user_id):
     except Event.DoesNotExist:
         return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    saved_status = UserEventInteraction.objects.filter(user=user, event=event, status='saved').first()
+    saved_status = UserSavedEvent.objects.filter(user=user, event=event).first()
 
     if saved_status:
         return Response(
@@ -205,7 +191,7 @@ def save_event(request, event_id, user_id):
             status=status.HTTP_200_OK
         )
 
-    UserEventInteraction.objects.create(user=user, event=event, status='saved')
+    UserSavedEvent.objects.create(user=user, event=event)
 
     return Response({"Message": "Event successfully saved."}, status=status.HTTP_201_CREATED)
 
@@ -221,7 +207,7 @@ def unsave_event(request, event_id, user_id):
     except Event.DoesNotExist:
         return Response({"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    saved_event = UserEventInteraction.objects.filter(user=user, event=event, status='saved').first()
+    saved_event = UserSavedEvent.objects.filter(user=user, event=event).first()
 
     if saved_event:
         saved_event.delete()
@@ -257,16 +243,12 @@ def get_user_events(request, user_id):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    user_status_subquery = UserEventInteraction.objects.filter(
-        user=user, event=OuterRef("id")
-    ).values("status")[:1]
+    events = Event.objects.filter(usereventinteraction__user=user)
 
-    events = Event.objects.filter(usereventinteraction__user=user).annotate(
-        status=Subquery(user_status_subquery)
-    )
     if status_filter:
         events = events.filter(usereventinteraction__status=status_filter)
-    serializer = EventSerializer(events, many=True)
+
+    serializer = EventSerializer(events, many=True, context={"user": user})
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 

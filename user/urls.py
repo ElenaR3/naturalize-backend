@@ -1,5 +1,5 @@
 from django.urls import path
-from user.views import GetAllEvents, GetDonations, GetPetitions, RegisterView, UserFeed, UserStatsView, CustomTokenObtainPairView
+from user.views import GetAllEvents, GetPetitions, RegisterView, UserFeed, UserStatsView, CustomTokenObtainPairView
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
@@ -13,12 +13,12 @@ urlpatterns = [
     path('api/feed/', UserFeed.as_view(), name="user_feed"),
     path('api/events', GetAllEvents.as_view(), name="user_events"),
     path('api/users/userProfile/<int:user_id>', views.get_user_profile, name="user_profile"),
-    path('api/petitions', GetPetitions.as_view(), name="user_petitions"),
-    path('api/donations', GetDonations.as_view(), name="user_donations"),
+    # path('api/petitions', GetPetitions.as_view(), name="user_petitions"),
+    # path('api/donations', GetDonations.as_view(), name="user_donations"),
     path('api/users/<int:user_id>/events/<int:event_id>/apply/', views.apply_to_event, name='apply-to-event'),
     path('api/users/<int:user_id>/events/<int:event_id>/save/', views.save_event, name='save_event'),
     path('api/users/<int:user_id>/events/<int:event_id>/unsave/', views.unsave_event, name='unsave_event'),
-    path('api/users/<int:user_id>/events/', views.get_user_events, name='get-user=events'),
+    path('api/users/<int:user_id>/events/', views.get_user_events, name='get-user-events'),
     path('api/users/edit/', views.edit_user_profile, name="edit-user-profile"),
     path('api/users/<int:user_id>/delete', views.delete_user, name="delete-user"),
     path('api/users/active-goal/<int:user_id>', views.get_user_active_goal, name="get-user-active-goal"),

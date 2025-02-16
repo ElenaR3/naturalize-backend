@@ -1,5 +1,5 @@
 from django.db.models.signals import post_save, post_delete
-from django.db import models  # Import models module
+from django.db import models
 from django.dispatch import receiver
 from .models import WeeklyUserStats
 

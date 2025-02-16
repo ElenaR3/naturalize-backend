@@ -1,5 +1,10 @@
 from django.db import models
 
+class MarkerType(models.IntegerChoices):
+        VO = 1, "Volunteering opportunity",
+        SE = 2, "Sustainable event",
+        Donation = 3, "Donation"
+
 class TeamChoices(models.IntegerChoices):
         INTO_THE_HEIGHTS = 1, 'INTO THE HEIGHTS'
         MARINES = 2, 'MARINES'
@@ -10,7 +15,7 @@ class EventEnrollementStatus(models.TextChoices):
         APPLIED = 'applied', 'Applied'
         ACCEPTED = 'accepted', 'Accepted'
         WAITLISTED = 'waitlisted', 'Waitlisted'
-        SAVED = 'saved', 'Saved'
+        COMPLETED = 'completed', 'Completed'
 
 class SocialMedia(models.TextChoices):
         INSTAGRAM = 'Instagram', 'Instagram' 

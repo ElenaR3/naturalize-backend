@@ -1,8 +1,8 @@
 from datetime import date
 from rest_framework import serializers
-from shared.serializers import PhotoSerializer
+from shared.serializers import ContactSerializer, PhotoSerializer, SocialMediaSerializer
 from shared.models import Location
-from .models import Donation, Goal, CustomUser, Petition, Post, UserGoal, Week, WeeklyUserStats, ExperienceDevelopmentStage
+from .models import Goal, CustomUser, Petition, Post, UserGoal, Week, WeeklyUserStats, ExperienceDevelopmentStage
 from rest_framework.serializers import ModelSerializer
 from shared.serializers import AchievementsSerializer, CompetencesSerializer
 from django.db.models import QuerySet
@@ -25,11 +25,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["id", "email", "password"]
+        fields = ["id", "email", "name", "password"]
 
     def create(self, validated_data):
-        user = CustomUser.objects.create(email=validated_data['email'],
-                                         )
+        user = CustomUser.objects.create(email=validated_data['email'], name=validated_data['name'] )
         user.set_password(validated_data['password'])
         user.save()
         return user
@@ -74,21 +73,6 @@ class PetitionSerializer(ModelSerializer):
         user = self.context.get('user')
         return user.saved_user_petitions.filter(id=obj.id).exists()
 
-class DonationSerializer(ModelSerializer):
-    
-    location = LocationSerializer()
-    is_saved = serializers.SerializerMethodField() 
-    impact_gallery = PhotoSerializer()
-
-    class Meta:
-        model = Donation 
-        fields = ["id", "is_saved", "title","avg_rating","xp_given","start_date","about","friends_that_donated","image_url","about_creator",
-    "impact_gallery", "location"]
-    
-    def get_is_saved(self, obj):
-        user = self.context.get('user')
-        return user.saved_donations_by_users.filter(id=obj.id).exists()
-
 class GoalSerializer(ModelSerializer):
     class Meta:
         model = Goal
@@ -120,6 +104,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
     current_streak = serializers.IntegerField(source="userstreak.current_streak", read_only=True)
     current_league = serializers.SerializerMethodField()
     xp_stage = serializers.SerializerMethodField()
+    social_media = SocialMediaSerializer(many=True, read_only=True, source="user_social_media")
+    contacts = ContactSerializer(many=True, read_only=True, source="user_contact_options")
+
 
     class Meta:
         model = CustomUser
@@ -127,7 +114,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "email", "name", "surname", "total_xp", "profile_image_url", "user_photos",
             "bio", "birthday", "number_top_finishes", "following", "focus_teams",
             "followers", "gained_competences", "gained_achievements", "event_gallery", "created_events",
-            "current_streak", "current_league", "causes", "expectations", "xp_stage"
+            "current_streak", "current_league", "causes", "expectations", "xp_stage", "social_media", "contacts"
         ]
     
     def get_current_league(self, obj):
@@ -170,6 +157,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "current_stage": current_stage.name,
             "next_stage": next_stage.name if next_stage else None
         }
+
 class UserEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
