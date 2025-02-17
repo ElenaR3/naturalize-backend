@@ -105,7 +105,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     current_league = serializers.SerializerMethodField()
     xp_stage = serializers.SerializerMethodField()
     social_media = SocialMediaSerializer(many=True, read_only=True, source="user_social_media")
-    contacts = ContactSerializer(many=True, read_only=True, source="user_contact_options")
+    contact_options = ContactSerializer(many=True, read_only=True, source="user_contact_options")
 
 
     class Meta:
