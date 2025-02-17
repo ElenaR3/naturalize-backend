@@ -114,7 +114,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "email", "name", "surname", "total_xp", "profile_image_url", "user_photos",
             "bio", "birthday", "number_top_finishes", "following", "focus_teams",
             "followers", "gained_competences", "gained_achievements", "event_gallery", "created_events",
-            "current_streak", "current_league", "causes", "expectations", "xp_stage", "social_media", "contacts"
+            "current_streak", "current_league", "causes", "expectations", "xp_stage", "social_media", "contact_options"
         ]
     
     def get_current_league(self, obj):
