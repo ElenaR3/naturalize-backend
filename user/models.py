@@ -1,10 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from ngo.models import NGOEntity
-from shared.models import Competences, Location, Team
+# from shared.models import Competences, Location, Team
 from events.models import Achievements, Event
 from shared.constants import AnimalCategory, EventEnrollementStatus, BabyAnimals, DevelopmentStage
 from .utils import add_xp_to_user
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 def get_default_development_stage():
     # Try to get the default stage (ECO_PIONEER)
@@ -23,7 +23,7 @@ def get_default_development_stage():
         next_stage, _ = ExperienceDevelopmentStage.objects.get_or_create(
             name=DevelopmentStage.BIOSPHERE_GUARDIAN,
             defaults={
-                'xp_required': 500,  # or any other default
+                'xp_required': 500,
                 'previous_stage': default_stage  # ECO_PIONEER is the previous stage
             }
         )
@@ -92,8 +92,8 @@ class CustomUser(AbstractUser):
     bio = models.TextField(null=True, blank=True)
     number_top_finishes = models.PositiveIntegerField(default=0, blank=True)
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers', null=True, blank=True)
-    focus_teams = models.ManyToManyField(Team, related_name='user_focus_teams', null=True, blank=True)
-    gained_competences = models.ManyToManyField(Competences, related_name='user_gained_competences', null=True, blank=True)
+    focus_teams = models.ManyToManyField('shared.Team', related_name='user_focus_teams', null=True, blank=True)
+    gained_competences = models.ManyToManyField('shared.Competences', related_name='user_gained_competences', null=True, blank=True)
     gained_achievements = models.ManyToManyField(Achievements, related_name='user_gained_achievements', null=True, blank=True)
     created_events = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True, blank=True, related_name='events_created_by_user')
     causes = models.CharField(max_length=1000, null=True, blank=True)
@@ -183,6 +183,18 @@ class Goal(models.Model):
     image_url = models.TextField(blank=True, null=True)
     category = models.TextField(choices=AnimalCategory.choices, blank=True, null=True)
 
+class GoalStage(models.Model):
+    goal = models.ForeignKey(Goal, on_delete=models.CASCADE, related_name="stages")
+    min_xp = models.PositiveIntegerField()
+    max_xp = models.PositiveIntegerField()
+    stage_level = models.PositiveIntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+
+    class Meta:
+        unique_together = ('goal', 'min_xp', 'max_xp')
+
 class UserGoal(models.Model):
     STATUS_CHOICES = [
         (1, "Active"),
@@ -197,12 +209,31 @@ class UserGoal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    current_stage = models.ForeignKey(
+        GoalStage, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
     def is_completed(self):
         return self.xp_accumulated >= self.goal.xp_required
 
+    def update_stage(self):
+        stage = (
+            self.goal.stages.filter(min_xp__lte=self.xp_accumulated, max_xp__gte=self.xp_accumulated)
+            .order_by("-min_xp")
+            .first()
+        )
+        if stage and stage != self.current_stage:
+            self.current_stage = stage
+
     def save(self, *args, **kwargs):
-        if self.xp_accumulated >= self.goal.xp_required:
-            self.status = 2
+        self.status = 2 if self.xp_accumulated >= self.goal.xp_required else 1
+
+        previous_stage = self.current_stage
+        self.update_stage()
+
+        if "update_fields" in kwargs and kwargs["update_fields"]:
+            kwargs["update_fields"] = list(set(kwargs["update_fields"] + ["status", "current_stage"]))
+
         super().save(*args, **kwargs)
 
 class Store(models.Model):
@@ -211,17 +242,17 @@ class Store(models.Model):
     rating = models.IntegerField(default=0)
     store_goal = models.TextField()
     product_desc = models.TextField()
-    store_location = models.OneToOneField(Location, on_delete=models.CASCADE)
+    store_location = models.OneToOneField('shared.Location', on_delete=models.CASCADE)
 
 class Post(models.Model):
     description = models.TextField(null=True, blank=True)
     post_image = models.URLField(null=True, blank=True)
     created_by_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
-    created_by_ngo = models.ForeignKey(NGOEntity, on_delete=models.CASCADE, null=True, blank=True)
+    created_by_ngo = models.ForeignKey('ngo.NGOEntity', on_delete=models.CASCADE, null=True, blank=True)
 
 class UserReview(models.Model):
     user_reviewer = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
-    reviewed_ngo = models.ForeignKey(NGOEntity, on_delete=models.CASCADE, related_name="user_reviews", null=True, blank=True)
+    reviewed_ngo = models.ForeignKey('ngo.NGOEntity', on_delete=models.CASCADE, related_name="user_reviews", null=True, blank=True)
     reviewed_store = models.ForeignKey(Store, on_delete=models.CASCADE, null=True, blank=True)
     review_comment = models.TextField()
     review_rating = models.FloatField()

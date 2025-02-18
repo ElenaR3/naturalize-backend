@@ -7,6 +7,7 @@ from rest_framework.serializers import ModelSerializer
 from shared.serializers import AchievementsSerializer, CompetencesSerializer
 from django.db.models import QuerySet
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from shared.constants import STAGE_LEVELS
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -80,10 +81,21 @@ class GoalSerializer(ModelSerializer):
 
 class UserGoalSerializer(ModelSerializer):
     goal = GoalSerializer()
+    current_stage = serializers.SerializerMethodField()
+    next_stage = serializers.SerializerMethodField()
 
     class Meta:
         model = UserGoal
-        fields = ['goal', 'xp_accumulated', 'level']
+        fields = ['goal', 'xp_accumulated', 'level', 'current_stage', 'next_stage']
+
+    def get_current_stage(self, obj):
+        if obj.current_stage:
+            return STAGE_LEVELS.get(obj.current_stage.stage_level, "Unknown")
+
+    def get_next_stage(self, obj):
+        if obj.current_stage:
+            next_stage = obj.current_stage.stage_level + 1
+            return STAGE_LEVELS.get(next_stage, "Unknown")
 
 class ExperienceDevelopmentStageSerializer(serializers.ModelSerializer):
 

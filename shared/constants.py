@@ -1,5 +1,12 @@
 from django.db import models
 
+STAGE_LEVELS = {
+    1: "First stage",
+    2: "Second stage",
+    3: "Third stage",
+    4: "Fourth stage",
+}
+
 class MarkerType(models.IntegerChoices):
         VO = 1, "Volunteering opportunity",
         SE = 2, "Sustainable event",

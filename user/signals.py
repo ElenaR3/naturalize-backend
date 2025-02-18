@@ -1,7 +1,10 @@
 from django.db.models.signals import post_save, post_delete
 from django.db import models
 from django.dispatch import receiver
-from .models import WeeklyUserStats
+from .models import WeeklyUserStats, UserEventInteraction, CustomUser, Goal, UserGoal
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+
 
 @receiver(post_save, sender=WeeklyUserStats)
 def update_total_xp_on_save(sender, instance, **kwargs):
@@ -12,12 +15,6 @@ def update_total_xp_on_save(sender, instance, **kwargs):
 def update_total_xp_on_delete(sender, instance, **kwargs):
     instance.user.total_xp = WeeklyUserStats.objects.filter(user=instance.user).aggregate(models.Sum('xp_earned'))['xp_earned__sum'] or 0
     instance.user.save()
-
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from .models import UserEventInteraction
 
 @receiver(post_save, sender=UserEventInteraction)
 def send_email_on_status_change(sender, instance, **kwargs):
@@ -48,3 +45,18 @@ def send_email_on_status_change(sender, instance, **kwargs):
             [instance.user.email],
             fail_silently=False,
         )
+
+
+@receiver(post_save, sender=CustomUser)
+def assign_default_goal(sender, instance, created, **kwargs):
+    if created: 
+        default_goal = Goal.objects.first()
+        if default_goal:
+            first_stage = default_goal.stages.order_by("min_xp").first()
+
+            UserGoal.objects.create(
+                user=instance,
+                goal=default_goal,
+                current_stage=first_stage,
+                xp_accumulated=0
+            )

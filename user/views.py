@@ -13,6 +13,7 @@ from shared.constants import EventEnrollementStatus
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.exceptions import NotFound
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -132,10 +133,11 @@ class GetPetitions(APIView):
 
 @api_view(['GET'])
 def get_user_active_goal(request, user_id):
-    try:
-        current_goal = UserGoal.objects.filter(user_id=user_id, status=1).first()
-    except UserGoal.DoesNotExist:
-        return Response({"Error": "No active goal found."}, status=status.HTTP_404_NOT_FOUND)
+
+    current_goal = UserGoal.objects.filter(user_id=user_id, status=1).first()
+
+    if not current_goal:
+            raise NotFound("There are no active goals for this user.")
 
     serializer = UserGoalSerializer(current_goal)
 

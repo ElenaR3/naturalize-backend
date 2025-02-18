@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CustomUser, Petition, ExperienceDevelopmentStage, UserSavedEvent, Week, Post, WeeklyUserStats, UserStreak, Goal, UserGoal, Store, UserReview, Product, UserEventInteraction
+from .models import CustomUser, Petition, ExperienceDevelopmentStage, UserSavedEvent, Week, Post, WeeklyUserStats, UserStreak, Goal, UserGoal, GoalStage, Store, UserReview, Product, UserEventInteraction
 
 admin.site.register(CustomUser)
 admin.site.register(Week)
@@ -16,4 +16,4 @@ admin.site.register(Petition)
 admin.site.register(UserEventInteraction)
 admin.site.register(ExperienceDevelopmentStage)
 admin.site.register(UserSavedEvent)
-# admin.site.register(TRRDonation)
+admin.site.register(GoalStage)
