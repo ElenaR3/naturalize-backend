@@ -91,7 +91,7 @@ class CustomUser(AbstractUser):
     birthday = models.DateField(null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     number_top_finishes = models.PositiveIntegerField(default=0, blank=True)
-    following = models.ManyToManyField('self', symmetrical=False, related_name='followers', null=True, blank=True)
+    following = models.ManyToManyField('self', symmetrical=False, related_name='followers', null=True, blank=True, default=0)
     focus_teams = models.ManyToManyField('shared.Team', related_name='user_focus_teams', null=True, blank=True)
     gained_competences = models.ManyToManyField('shared.Competences', related_name='user_gained_competences', null=True, blank=True)
     gained_achievements = models.ManyToManyField(Achievements, related_name='user_gained_achievements', null=True, blank=True)
@@ -185,8 +185,8 @@ class Goal(models.Model):
 
 class GoalStage(models.Model):
     goal = models.ForeignKey(Goal, on_delete=models.CASCADE, related_name="stages")
-    min_xp = models.PositiveIntegerField()
-    max_xp = models.PositiveIntegerField()
+    min_xp = models.PositiveIntegerField(default=0)
+    max_xp = models.PositiveIntegerField(default=0)
     stage_level = models.PositiveIntegerField(
         default=1,
         validators=[MinValueValidator(1), MaxValueValidator(10)]

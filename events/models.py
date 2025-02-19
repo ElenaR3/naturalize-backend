@@ -21,9 +21,9 @@ class Event(models.Model):
     markerType = models.IntegerField(choices=MarkerType.choices) 
     eventDescription = models.TextField() 
     location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True, related_name='event_locations')
-    competences = models.ManyToManyField(Competences, related_name="event_comp") # This might get deleted
-    achievements = models.ManyToManyField(Achievements, related_name="event_achv")
-    focus_teams = models.ManyToManyField(Team, related_name='event_teams_focus')
+    competences = models.ManyToManyField(Competences, related_name="event_comp", null=True, blank=True)
+    achievements = models.ManyToManyField(Achievements, related_name="event_achv", null=True, blank=True)
+    focus_teams = models.ManyToManyField(Team, related_name='event_teams_focus', null=True, blank=True)
     people_needed = models.PositiveIntegerField(default=0)
     people_applied = models.PositiveIntegerField(default=0)
     main_image_url = models.URLField(null=True, blank=True)
