@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
+from backend import settings
 from events.models import Event
 from ngo.models import NGOEntity
 from user.models import UserEventInteraction
@@ -30,7 +31,7 @@ class UserEventInteractionAdmin(admin.ModelAdmin):
             send_mail(
                 subject,
                 message,
-                'from@example.com',
+                settings.EMAIL_HOST_USER,
                 [application.user.email],
                 fail_silently=False,
             )

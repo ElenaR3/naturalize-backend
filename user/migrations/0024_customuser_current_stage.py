@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='current_stage',
-            field=models.ForeignKey(blank=True, default=user.models.get_default_development_stage, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='users_in_stage', to='user.experiencedevelopmentstage'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='users_in_stage', to='user.experiencedevelopmentstage'),
         ),
     ]

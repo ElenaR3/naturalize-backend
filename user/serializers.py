@@ -1,13 +1,15 @@
 from datetime import date
 from rest_framework import serializers
+from shared import constants
 from shared.serializers import ContactSerializer, PhotoSerializer, SocialMediaSerializer
 from shared.models import Location
-from .models import Goal, CustomUser, Petition, Post, UserGoal, Week, WeeklyUserStats, ExperienceDevelopmentStage
+from user import utils
+from .models import Goal, CustomUser, GoalStage, Petition, Post, UserGoal, Week, WeeklyUserStats, ExperienceDevelopmentStage
 from rest_framework.serializers import ModelSerializer
 from shared.serializers import AchievementsSerializer, CompetencesSerializer
 from django.db.models import QuerySet
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from shared.constants import STAGE_LEVELS
+from shared.constants import STAGE_LEVELS, DEVELOPMENT_STAGE
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -83,10 +85,11 @@ class UserGoalSerializer(ModelSerializer):
     goal = GoalSerializer()
     current_stage = serializers.SerializerMethodField()
     next_stage = serializers.SerializerMethodField()
+    current_stage_progress = serializers.SerializerMethodField()
 
     class Meta:
         model = UserGoal
-        fields = ['goal', 'xp_accumulated', 'level', 'current_stage', 'next_stage']
+        fields = ['goal', 'xp_accumulated', 'level', 'current_stage', 'next_stage', 'current_stage_progress']
 
     def get_current_stage(self, obj):
         if obj.current_stage:
@@ -96,6 +99,20 @@ class UserGoalSerializer(ModelSerializer):
         if obj.current_stage:
             next_stage = obj.current_stage.stage_level + 1
             return STAGE_LEVELS.get(next_stage, "Unknown")
+
+    def get_current_stage_progress(self, obj):
+        xp_prev_stage = GoalStage.objects.filter(
+            stage_level=(obj.current_stage.stage_level - 1)
+            ).first()
+
+        if not xp_prev_stage:
+            return "No active user goal found."
+        
+        previous_stage_max_xp = xp_prev_stage.max_xp if xp_prev_stage else 0 
+
+        return utils.calculate_stage_progress(
+        obj.user.total_xp, obj.current_stage.min_xp, obj.current_stage.max_xp, previous_stage_max_xp
+        )
 
 class ExperienceDevelopmentStageSerializer(serializers.ModelSerializer):
 
@@ -115,10 +132,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
     user_photos = PhotoSerializer(many=True, read_only=True, source="user_personal_gallery")
     current_streak = serializers.IntegerField(source="userstreak.current_streak", read_only=True)
     current_league = serializers.SerializerMethodField()
-    xp_stage = serializers.SerializerMethodField()
+    current_xp_stage = serializers.SerializerMethodField()
+    next_xp_stage = serializers.SerializerMethodField()
+    progress = serializers.SerializerMethodField()
     social_media = SocialMediaSerializer(many=True, read_only=True, source="user_social_media")
     contact_options = ContactSerializer(many=True, read_only=True, source="user_contact_options")
-
 
     class Meta:
         model = CustomUser
@@ -126,7 +144,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "email", "name", "surname", "total_xp", "profile_image_url", "user_photos",
             "bio", "birthday", "number_top_finishes", "following", "focus_teams",
             "followers", "gained_competences", "gained_achievements", "event_gallery", "created_events",
-            "current_streak", "current_league", "causes", "expectations", "xp_stage", "social_media", "contact_options"
+            "current_streak", "current_league", "causes", "expectations", "current_xp_stage", "next_xp_stage", "social_media", 
+            "contact_options", "progress"
         ]
     
     def get_current_league(self, obj):
@@ -162,13 +181,26 @@ class CustomUserSerializer(serializers.ModelSerializer):
         teams = obj.focus_teams.all()
         return [team.get_name_display() for team in teams]
 
-    def get_xp_stage(self, obj):
-        current_stage = obj.current_stage
-        next_stage = current_stage.next_stage if hasattr(current_stage, "next_stage") else None
-        return {
-            "current_stage": current_stage.name,
-            "next_stage": next_stage.name if next_stage else None
-        }
+    def get_current_xp_stage(self, obj):
+        if obj.current_stage:
+            return DEVELOPMENT_STAGE.get(obj.current_stage.stage_level, "Unknown")
+
+    def get_next_xp_stage(self, obj):
+        if obj.current_stage:
+            next_stage = obj.current_stage.stage_level + 1
+            return DEVELOPMENT_STAGE.get(next_stage, "Unknown")
+
+    def get_progress(self, obj):
+        xp_prev_stage = ExperienceDevelopmentStage.objects.filter(
+            stage_level=obj.current_stage.stage_level - 1
+            ).first()
+        if not xp_prev_stage:
+            return "No active development stage found."
+        previous_stage_max_xp = xp_prev_stage.max_xp if xp_prev_stage else 0 
+
+        return utils.calculate_stage_progress(
+        obj.total_xp, obj.current_stage.min_xp, obj.current_stage.max_xp, previous_stage_max_xp
+        )
 
 class UserEditSerializer(serializers.ModelSerializer):
     class Meta:

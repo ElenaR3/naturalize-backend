@@ -27,7 +27,7 @@ class Event(models.Model):
     people_needed = models.PositiveIntegerField(default=0)
     people_applied = models.PositiveIntegerField(default=0)
     main_image_url = models.URLField(null=True, blank=True)
-    event_xp = models.IntegerField(null=True, blank=True)
+    event_xp = models.IntegerField(null=True, blank=True, default=0)
     organized_by = models.ForeignKey('ngo.NGOEntity', related_name="event_organizer", on_delete=models.CASCADE, blank=True, null=True)
     donation = models.OneToOneField(TRRDonation, on_delete=models.CASCADE, null=True, blank=True)
 

@@ -6,52 +6,15 @@ from shared.constants import AnimalCategory, EventEnrollementStatus, BabyAnimals
 from .utils import add_xp_to_user
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-def get_default_development_stage():
-    # Try to get the default stage (ECO_PIONEER)
-    default_stage, created = ExperienceDevelopmentStage.objects.get_or_create(
-        name=DevelopmentStage.ECO_PIONEER,
-        defaults={
-            'xp_required': 350,  # or any other default
-            'previous_stage': None,  # No previous stage for ECO_PIONEER
-            'next_stage': None  # Initially, no next stage
-        }
-    )
-
-    # If ECO_PIONEER was created, set up BIOSPHERE_GUARDIAN
-    if created:
-        # Create the next stage (BIOSPHERE_GUARDIAN)
-        next_stage, _ = ExperienceDevelopmentStage.objects.get_or_create(
-            name=DevelopmentStage.BIOSPHERE_GUARDIAN,
-            defaults={
-                'xp_required': 500,
-                'previous_stage': default_stage  # ECO_PIONEER is the previous stage
-            }
-        )
-
-        # Set the next_stage for ECO_PIONEER
-        default_stage.next_stage = next_stage
-        default_stage.save()
-
-    return default_stage.id
-
 class ExperienceDevelopmentStage(models.Model):
     name = models.CharField(max_length=50, choices=DevelopmentStage.choices)
-    xp_required = models.IntegerField(default=0)
-    previous_stage = models.OneToOneField(
-        'self',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='previous_stage_relation'
+    min_xp = models.PositiveIntegerField(default=0)
+    max_xp = models.PositiveIntegerField(default=0)
+    stage_level = models.PositiveIntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
-    next_stage = models.OneToOneField(
-        'self',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='next_stage_relation'
-    )
-
+  
     def __str__(self):
         return self.name
 
@@ -100,10 +63,9 @@ class CustomUser(AbstractUser):
     expectations = models.CharField(max_length=1000, null=True, blank=True)
     current_stage = models.ForeignKey(
         ExperienceDevelopmentStage,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        default=get_default_development_stage,
         related_name='users_in_stage' # name for the reverse relation
     )
 
@@ -119,6 +81,22 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.name if self.name else self.email
+
+    def save(self, *args, **kwargs):
+        if self.current_stage:
+            if not (self.current_stage.min_xp <= self.total_xp <= self.current_stage.max_xp):
+                next_stage = ExperienceDevelopmentStage.objects.filter(
+                    min_xp__lte=self.total_xp,
+                    max_xp__gte=self.total_xp
+                ).order_by('stage_level').first()
+
+                if next_stage:
+                    self.current_stage = next_stage
+
+            if "update_fields" in kwargs and kwargs["update_fields"]:
+                kwargs["update_fields"] = list(set(kwargs["update_fields"] + ["current_stage"]))
+
+        super().save(*args, **kwargs)
 
 class Petition(models.Model):
     title = models.TextField()
@@ -232,7 +210,7 @@ class UserGoal(models.Model):
         self.update_stage()
 
         if "update_fields" in kwargs and kwargs["update_fields"]:
-            kwargs["update_fields"] = list(set(kwargs["update_fields"] + ["status", "current_stage"]))
+            kwargs["update_fields"] = list(set(kwargs["update_fields"] + ["status", "current_stage", "xp_accumulated"]))
 
         super().save(*args, **kwargs)
 
@@ -304,12 +282,26 @@ class UserEventInteraction(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        if self.pk:
+        # if self.pk:
+        #     previous = UserEventInteraction.objects.filter(pk=self.pk).only('status').first()
+        #     if previous and previous.status != self.status:
+        #         xp_earned = self.STATUS_POINTS.get(self.status, 0)
+        #         print(f"This is xp_earned {xp_earned}")
+        #         if xp_earned > 0:
+        #             add_xp_to_user(self.user, xp_earned)
+
+        # super().save(*args, **kwargs)
+
+        is_new = self.pk is None
+
+        if not is_new:
             previous = UserEventInteraction.objects.filter(pk=self.pk).only('status').first()
-            if previous and previous.status != self.status:
-                xp_earned = self.STATUS_POINTS.get(self.status, 0)
-                print(f"This is xp_earned {xp_earned}")
-                if xp_earned > 0:
-                    add_xp_to_user(self.user, xp_earned)
+            self._previous_status = previous.status if previous else None
+
+        if is_new or (self.pk and hasattr(self, '_previous_status') and self._previous_status != self.status):
+            xp_earned = self.STATUS_POINTS.get(self.status, 0)
+            print(f"This is xp_earned {xp_earned}")
+            if xp_earned > 0:
+                add_xp_to_user(self.user, xp_earned)
 
         super().save(*args, **kwargs)

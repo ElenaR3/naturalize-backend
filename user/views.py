@@ -105,15 +105,12 @@ class GetAllEvents(APIView):
 @api_view(['GET'])
 def get_user_profile(request, user_id):
     try:
-        # Get the user object based on user_id
         user = CustomUser.objects.get(id=user_id)
     except CustomUser.DoesNotExist:
         return Response({"Error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    # Serialize the user object
     serializer = CustomUserSerializer(user)
 
-    # Return the serialized data
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 class GetPetitions(APIView):

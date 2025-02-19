@@ -7,6 +7,14 @@ STAGE_LEVELS = {
     4: "Fourth stage",
 }
 
+DEVELOPMENT_STAGE = {
+        1: "Eco Pioneer",
+        2: "Biosphere Guardian",
+        3: "Gaia's Emissary",
+        4: "Planet Healer",
+        5: "Cosmic Steward",
+}
+
 class MarkerType(models.IntegerChoices):
         VO = 1, "Volunteering opportunity",
         SE = 2, "Sustainable event",

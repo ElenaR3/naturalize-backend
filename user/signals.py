@@ -1,15 +1,15 @@
 from django.db.models.signals import post_save, post_delete
 from django.db import models
 from django.dispatch import receiver
-from .models import WeeklyUserStats, UserEventInteraction, CustomUser, Goal, UserGoal
+from .models import WeeklyUserStats, UserEventInteraction, CustomUser, Goal, UserGoal, ExperienceDevelopmentStage
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+from backend import settings
 
-
-@receiver(post_save, sender=WeeklyUserStats)
-def update_total_xp_on_save(sender, instance, **kwargs):
-    instance.user.total_xp = WeeklyUserStats.objects.filter(user=instance.user).aggregate(models.Sum('xp_earned'))['xp_earned__sum'] or 0
-    instance.user.save()
+# @receiver(post_save, sender=WeeklyUserStats)
+# def update_total_xp_on_save(sender, instance, **kwargs):
+#     instance.user.total_xp = WeeklyUserStats.objects.filter(user=instance.user).aggregate(models.Sum('xp_earned'))['xp_earned__sum'] or 0
+#     instance.user.save()
 
 @receiver(post_delete, sender=WeeklyUserStats)
 def update_total_xp_on_delete(sender, instance, **kwargs):
@@ -27,8 +27,8 @@ def send_email_on_status_change(sender, instance, **kwargs):
         send_mail(
             subject,
             message,
-            'from@example.com',
-            ['to@example.com'],
+            settings.EMAIL_HOST_USER,
+            ['info@greenie.si'],
             fail_silently=False,
         )
 
@@ -41,7 +41,7 @@ def send_email_on_status_change(sender, instance, **kwargs):
         send_mail(
             subject,
             message,
-            'greenie@gmail.com',
+            settings.EMAIL_HOST_USER,
             [instance.user.email],
             fail_silently=False,
         )
@@ -60,3 +60,11 @@ def assign_default_goal(sender, instance, created, **kwargs):
                 current_stage=first_stage,
                 xp_accumulated=0
             )
+
+@receiver(post_save, sender=CustomUser)
+def set_default_stage(sender, instance, created, **kwargs):
+    if created and not instance.current_stage:
+        default_stage = ExperienceDevelopmentStage.objects.order_by('stage_level').first()
+        if default_stage:
+            instance.current_stage = default_stage
+            instance.save()

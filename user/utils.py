@@ -16,13 +16,14 @@ def add_xp_to_user(user, xp_earned):
     with transaction.atomic():
         user.total_xp += xp_earned
         user_goal.xp_accumulated += xp_earned
-        user.save(update_fields=["total_xp"])
-        user_goal.save(update_fields=["xp_accumulated"])
+        user.save()
+        user_goal.save()
 
-        while user.current_stage and user.total_xp > user.current_stage.xp_required:
-            next_stage = user.current_stage.next_stage
-            if next_stage:
-                user.current_stage = next_stage
-                user.save(update_fields=["current_stage"])  # Prevent full save
-            else:
-                break
+def calculate_stage_progress(total_xp, stage_min_xp, stage_max_xp, previous_stage_max_xp):
+
+    current_xp_in_stage = total_xp - previous_stage_max_xp
+
+    stage_range = stage_max_xp - stage_min_xp
+    progress_percentage = (current_xp_in_stage / stage_range) if stage_range else 0.0
+
+    return round(progress_percentage, 2)
