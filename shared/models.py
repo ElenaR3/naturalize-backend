@@ -69,6 +69,21 @@ class PhotoBase(models.Model):
             raise ValidationError("A photo must belong to either a user, NGO, or an event.")
         if self.photo_by_user and self.photo_by_ngo:
             raise ValidationError("A photo cannot belong to both a user and an NGO.")
+
+class ProfilePicture(models.Model):
+    user = models.OneToOneField('user.CustomUser', on_delete=models.CASCADE, related_name='user_profile_picture', null=True, blank=True)
+    ngo = models.ForeignKey('ngo.NGOEntity', on_delete=models.CASCADE, related_name='ngo_profile_pictures', null=True, blank=True)
+    image = models.ImageField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def save(self, *args, **kwargs):
+        # Ensure either 'user' or 'ngo' is set, but not both
+        if not (self.user or self.ngo):
+            raise ValueError("Either user or NGO must be specified for the profile picture.")
+        if self.user and self.ngo:
+            raise ValueError("Cannot assign both user and NGO to the same profile picture.")
+        super().save(*args, **kwargs)
     
 class Photo(PhotoBase):
     pass

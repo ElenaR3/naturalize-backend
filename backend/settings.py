@@ -35,6 +35,7 @@ DEBUG = True
 # Application definition
 
 INSTALLED_APPS = [
+    'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -49,7 +50,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt',
     'whitenoise.runserver_nostatic',
-    'django_crontab',
 ]
 
 MIDDLEWARE = [

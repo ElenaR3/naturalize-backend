@@ -5,7 +5,6 @@ class NGOEntity(models.Model):
     name = models.TextField()
     about = models.TextField(null=True, blank=True)
     history = models.TextField(null=True, blank=True)
-    profile_image_url = models.URLField(null=True, blank=True)
     volonteer_num = models.IntegerField(default=0)
     avg_rating = models.FloatField(default=0)
     total_ratings = models.PositiveIntegerField(default=0)

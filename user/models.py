@@ -50,7 +50,6 @@ class CustomUser(AbstractUser):
     surname = models.CharField(max_length=100, null=True, blank=True)
     total_xp = models.PositiveIntegerField(default=0)
     date_joined = models.DateTimeField(auto_now_add=True)
-    profile_image_url = models.URLField(null=True, blank=True)
     birthday = models.DateField(null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     number_top_finishes = models.PositiveIntegerField(default=0, blank=True)

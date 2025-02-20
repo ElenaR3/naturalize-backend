@@ -104,9 +104,6 @@ class UserGoalSerializer(ModelSerializer):
         xp_prev_stage = GoalStage.objects.filter(
             stage_level=(obj.current_stage.stage_level - 1)
             ).first()
-
-        if not xp_prev_stage:
-            return "No active user goal found."
         
         previous_stage_max_xp = xp_prev_stage.max_xp if xp_prev_stage else 0 
 
@@ -137,6 +134,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     progress = serializers.SerializerMethodField()
     social_media = SocialMediaSerializer(many=True, read_only=True, source="user_social_media")
     contact_options = ContactSerializer(many=True, read_only=True, source="user_contact_options")
+    profile_image_url = serializers.ImageField(source='user_profile_picture.image', required=False)
 
     class Meta:
         model = CustomUser
@@ -194,8 +192,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         xp_prev_stage = ExperienceDevelopmentStage.objects.filter(
             stage_level=obj.current_stage.stage_level - 1
             ).first()
-        if not xp_prev_stage:
-            return "No active development stage found."
+    
         previous_stage_max_xp = xp_prev_stage.max_xp if xp_prev_stage else 0 
 
         return utils.calculate_stage_progress(
