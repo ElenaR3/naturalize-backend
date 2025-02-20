@@ -10,5 +10,7 @@ Event Details:
 - End Date: {{ event.endDate }}
 - Location: {{ event.location.text }}
 
+Please get in touch with the volunteer and provide all the necessary information directly or through the app.
+
 Thank you,
 Greenie Team

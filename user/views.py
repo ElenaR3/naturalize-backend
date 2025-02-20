@@ -170,7 +170,7 @@ def apply_to_event(request, event_id, user_id):
     
     return Response({"Success": "You have successfully applied to the event."}, status=status.HTTP_201_CREATED)
 
-@api_view(['POST'])
+@api_view(['GET'])
 def save_event(request, event_id, user_id):
     try:
         user = CustomUser.objects.get(id=user_id)
@@ -210,7 +210,7 @@ def unsave_event(request, event_id, user_id):
 
     if saved_event:
         saved_event.delete()
-        return Response({"Message": "Event was successfully unsaved."}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"Message": "Event was successfully unsaved."}, status=status.HTTP_200_OK)
     else:
         return Response({"Message": "This event was not saved before."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -223,7 +223,7 @@ def delete_user(request, user_id):
 
     if user:
         user.delete()
-        return Response({"Message": "User profile was successfully deleted."}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"Message": "User profile was successfully deleted."}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

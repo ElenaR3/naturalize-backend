@@ -6,5 +6,7 @@ Event Details:
 - End Date: {{ event.endDate }}
 - Location: {{ event.location.text }}
 
+The NGO/Event organizer might contact you soon. Stay tuned for future updates in the app!
+
 Thank you,
 Your Greenie Team
