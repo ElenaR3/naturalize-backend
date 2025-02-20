@@ -1,6 +1,7 @@
 asgiref==3.8.1
 boto3==1.36.9
 botocore==1.36.9
+crontab==1.0.1
 dj-database-url==2.3.0
 Django==5.1.6
 django-cors-headers==4.3.1
