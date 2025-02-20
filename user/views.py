@@ -336,3 +336,19 @@ def add_user_xp_to_goal(request):
         return Response({'Error': 'Goal not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'Error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+def update_streak_for_user(request):
+    try:
+        user_id = request.data.get('user_id')
+        user = CustomUser.objects.get(id=user_id)
+    
+        streak, _ = UserStreak.objects.get_or_create(user=user)
+        streak.update_streak()
+
+        return Response({"Message": "Streak updated successfully."}, status=200)
+
+    except CustomUser.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)

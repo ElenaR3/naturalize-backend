@@ -1,15 +1,11 @@
+from django.utils import timezone
 from django.db.models.signals import post_save, post_delete
 from django.db import models
 from django.dispatch import receiver
-from .models import WeeklyUserStats, UserEventInteraction, CustomUser, Goal, UserGoal, ExperienceDevelopmentStage
+from .models import WeeklyUserStats, UserEventInteraction, CustomUser, Goal, UserGoal, ExperienceDevelopmentStage, UserStreak
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from backend import settings
-
-# @receiver(post_save, sender=WeeklyUserStats)
-# def update_total_xp_on_save(sender, instance, **kwargs):
-#     instance.user.total_xp = WeeklyUserStats.objects.filter(user=instance.user).aggregate(models.Sum('xp_earned'))['xp_earned__sum'] or 0
-#     instance.user.save()
 
 @receiver(post_delete, sender=WeeklyUserStats)
 def update_total_xp_on_delete(sender, instance, **kwargs):
@@ -68,3 +64,12 @@ def set_default_stage(sender, instance, created, **kwargs):
         if default_stage:
             instance.current_stage = default_stage
             instance.save()
+
+@receiver(post_save, sender=CustomUser)
+def create_user_streak(sender, instance, created, **kwargs):
+    if created:  # Only run when the user is first created
+    
+        UserStreak.objects.create(
+            user=instance,
+            last_active_date=timezone.now().date()  # Set the last_active_date to the current date
+        )

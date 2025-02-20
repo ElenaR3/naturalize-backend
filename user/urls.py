@@ -24,5 +24,6 @@ urlpatterns = [
     path('api/users/active-goal/<int:user_id>', views.get_user_active_goal, name="get-user-active-goal"),
     path('api/users/animal-collection', views.get_animal_collection, name="animal-collection"),
     path('api/users/<int:user_id>/choose_user_goal/<int:goal_id>', views.choose_user_goal, name="choose-user-goal"),
-    path('api/users/add-goal-progress', views.add_user_xp_to_goal, name="goal-progress")
+    path('api/users/add-goal-progress', views.add_user_xp_to_goal, name="goal-progress"),
+    path('api/users/update-streak', views.update_streak_for_user, name="update-streak")
 ]

@@ -1,10 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-# from shared.models import Competences, Location, Team
 from events.models import Achievements, Event
 from shared.constants import AnimalCategory, EventEnrollementStatus, BabyAnimals, DevelopmentStage
 from .utils import add_xp_to_user
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 
 class ExperienceDevelopmentStage(models.Model):
     name = models.CharField(max_length=50, choices=DevelopmentStage.choices)
@@ -147,9 +147,24 @@ class WeeklyUserStats(models.Model):
 
 class UserStreak(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    current_streak = models.PositiveIntegerField(default=0)
-    longest_streak = models.PositiveIntegerField(default=0)
-    last_streak_update = models.DateTimeField(auto_now=True)
+    current_streak = models.PositiveIntegerField(default=1)
+    longest_streak = models.PositiveIntegerField(default=1)
+    last_active_date = models.DateField(null=True, blank=True)
+
+    def update_streak(self):
+        today = timezone.now().date()
+
+        print(f"Before update - Streak: {self.current_streak}, Last Active: {self.last_active_date}")  # Debugging
+
+        if self.last_active_date == today - timezone.timedelta(days=1):
+            self.current_streak += 1
+
+        if self.current_streak > self.longest_streak:
+            self.longest_streak = self.current_streak
+        
+        self.last_active_date = today
+
+        self.save()
 
     def __str__(self):
         return f"{self.user.username} - Current Streak: {self.current_streak}, Longest Streak: {self.longest_streak}"
@@ -282,15 +297,6 @@ class UserEventInteraction(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        # if self.pk:
-        #     previous = UserEventInteraction.objects.filter(pk=self.pk).only('status').first()
-        #     if previous and previous.status != self.status:
-        #         xp_earned = self.STATUS_POINTS.get(self.status, 0)
-        #         print(f"This is xp_earned {xp_earned}")
-        #         if xp_earned > 0:
-        #             add_xp_to_user(self.user, xp_earned)
-
-        # super().save(*args, **kwargs)
 
         is_new = self.pk is None
 

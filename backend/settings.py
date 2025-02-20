@@ -16,7 +16,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
-
 # Load environment variables from .env file
 load_dotenv()
 
@@ -50,7 +49,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt',
     'whitenoise.runserver_nostatic',
-
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -180,3 +179,10 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DATABASES = {
     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
+
+CRONJOBS = [
+    ('0 0 * * *', 'user.cron.reset_streaks'),
+]
+
+USE_TZ = True
+TIME_ZONE = "UTC"
