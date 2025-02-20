@@ -10,7 +10,7 @@ class NGOProfileSerializer(serializers.ModelSerializer):
     social_media = SocialMediaSerializer(many=True, read_only=True)
     contact_options = ContactSerializer(many=True, read_only=True)
     ngo_profile_gallery = PhotoSerializer(many=True, read_only=True, source="ngo_personal_gallery")
-    profile_image_url = serializers.ImageField(source='ngo_profile_pictures.first.image', required=False)
+    profile_image_url = serializers.URLField(source='ngo_profile_pictures.first.image', required=False)
 
     class Meta:
         model = NGOEntity

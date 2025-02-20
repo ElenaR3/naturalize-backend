@@ -134,7 +134,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     progress = serializers.SerializerMethodField()
     social_media = SocialMediaSerializer(many=True, read_only=True, source="user_social_media")
     contact_options = ContactSerializer(many=True, read_only=True, source="user_contact_options")
-    profile_image_url = serializers.ImageField(source='user_profile_picture.image', required=False)
+    profile_image_url = serializers.URLField(source='user_profile_picture.image', required=False)
 
     class Meta:
         model = CustomUser

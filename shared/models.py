@@ -73,7 +73,7 @@ class PhotoBase(models.Model):
 class ProfilePicture(models.Model):
     user = models.OneToOneField('user.CustomUser', on_delete=models.CASCADE, related_name='user_profile_picture', null=True, blank=True)
     ngo = models.ForeignKey('ngo.NGOEntity', on_delete=models.CASCADE, related_name='ngo_profile_pictures', null=True, blank=True)
-    image = models.ImageField(null=True, blank=True)
+    image = models.URLField(null=True, blank=True, max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
