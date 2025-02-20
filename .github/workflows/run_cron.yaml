@@ -28,3 +28,4 @@ jobs:
         run: railway run --service 87c26b56-e635-419a-8fc4-e5b8241f077f python manage.py reset_streaks
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
