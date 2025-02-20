@@ -3,6 +3,7 @@ name: Run Django Cron Job
 on:
   schedule:
     - cron: "30 0 * * *"
+  workflow_dispatch:
 
 jobs:
   build:
