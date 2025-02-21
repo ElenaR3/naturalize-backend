@@ -196,8 +196,8 @@ def upload_ngo_profile_photo(request):
 
     thumb_io = io.BytesIO()
     image = Image.open(file)
-    image.thumbnail((200, 200))
-    image.save(thumb_io, format='JPEG')
+    image.thumbnail((200, 200), Image.LANCZOS)
+    image.save(thumb_io, format='JPEG', quality=95)
     thumb_io.seek(0)
 
     # Upload the thumbnail with folder path
@@ -248,8 +248,8 @@ def upload_user_profile_photo(request):
 
     thumb_io = io.BytesIO()
     image = Image.open(file)
-    image.thumbnail((200, 200))
-    image.save(thumb_io, format='JPEG')
+    image.thumbnail((200, 200), Image.LANCZOS)
+    image.save(thumb_io, format='JPEG', quality=95)
     thumb_io.seek(0)
 
     # Upload the thumbnail with folder path
