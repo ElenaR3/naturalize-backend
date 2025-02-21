@@ -202,5 +202,5 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class UserEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['email', 'name', 'surname', 'total_xp', 'profile_image_url', 
+        fields = ['email', 'name', 'surname', 'total_xp', 
                   'birthday', 'bio', 'number_top_finishes','focus_teams', 'causes', 'expectations']
