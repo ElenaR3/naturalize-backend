@@ -62,7 +62,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
    # 'whitenoise.middleware.WhiteNoiseMiddleware',
 
 ]
@@ -183,6 +182,3 @@ DATABASES = {
 CRONJOBS = [
     ('0 0 * * *', 'user.cron.reset_streaks'),
 ]
-
-USE_TZ = True
-TIME_ZONE = "UTC"
