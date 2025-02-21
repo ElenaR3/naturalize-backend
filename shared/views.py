@@ -187,7 +187,7 @@ def upload_ngo_profile_photo(request):
                       aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
 
-    folder = "ngo/profile/" 
+    folder = f"ngo/profile/{ngo_id}/" 
     file_key = f"{folder}{file.name}"
 
     # Upload the original file to S3
@@ -239,7 +239,7 @@ def upload_user_profile_photo(request):
                       aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
 
-    folder = "user/profile/" 
+    folder = f"user/profile/{user_id}/" 
     file_key = f"{folder}{file.name}"
 
     # Upload the original file to S3
