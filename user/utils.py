@@ -10,15 +10,14 @@ def add_xp_to_user(user, xp_earned):
             raise ValidationError("XP earned must be a positive value.")
 
     user_goal = user.usergoal_set.filter(status=1).order_by('-xp_accumulated').first()
-    if user_goal:
-        print(user_goal.xp_accumulated)
 
     with transaction.atomic():
         user.total_xp += xp_earned
-        user_goal.xp_accumulated += xp_earned
         user.save()
-        user_goal.save()
-
+        if user_goal:
+            user_goal.xp_accumulated += xp_earned
+            user_goal.save()
+        
 def calculate_stage_progress(total_xp, stage_min_xp, stage_max_xp, previous_stage_max_xp):
 
     current_xp_in_stage = total_xp - previous_stage_max_xp
