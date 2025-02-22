@@ -200,6 +200,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
         )
 
 class UserEditSerializer(serializers.ModelSerializer):
+
+    birthday = serializers.DateField(input_formats=['%d/%m/%Y', '%Y-%m-%d'])
+
     class Meta:
         model = CustomUser
         fields = ['email', 'name', 'surname', 'total_xp', 

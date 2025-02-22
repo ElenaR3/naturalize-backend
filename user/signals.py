@@ -14,19 +14,19 @@ def update_total_xp_on_delete(sender, instance, **kwargs):
 
 @receiver(post_save, sender=UserEventInteraction)
 def send_email_on_status_change(sender, instance, **kwargs):
-    if instance.status == 'applied':
-        subject = f'New Application for Event: {instance.event.eventName}'
-        message = render_to_string('user/emails/new_application_email.txt', {
-            'event': instance.event,
-            'user': instance.user,
-        })
-        send_mail(
-            subject,
-            message,
-            settings.EMAIL_HOST_USER,
-            ['info@greenie.si'],
-            fail_silently=False,
-        )
+    # if instance.status == 'applied':
+    #     subject = f'New Application for Event: {instance.event.eventName}'
+    #     message = render_to_string('user/emails/new_application_email.txt', {
+    #         'event': instance.event,
+    #         'user': instance.user,
+    #     })
+    #     send_mail(
+    #         subject,
+    #         message,
+    #         settings.EMAIL_HOST_USER,
+    #         ['info@greenie.si'],
+    #         fail_silently=False,
+    #     )
 
     if instance.status == 'accepted':
         subject = f'Your Application Has Been Accepted: {instance.event.eventName}'
