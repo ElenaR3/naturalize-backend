@@ -214,7 +214,7 @@ def unsave_event(request, event_id, user_id):
     else:
         return Response({"Message": "This event was not saved before."}, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['POST'])
+@api_view(['GET'])
 def delete_user(request, user_id):
     try:
         user = CustomUser.objects.get(id=user_id)
