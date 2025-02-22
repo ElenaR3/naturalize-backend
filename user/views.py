@@ -170,7 +170,7 @@ def apply_to_event(request, event_id, user_id):
     
     return Response({"Success": "You have successfully applied to the event."}, status=status.HTTP_201_CREATED)
 
-@api_view(['GET'])
+@api_view(['POST'])
 def save_event(request, event_id, user_id):
     try:
         user = CustomUser.objects.get(id=user_id)
