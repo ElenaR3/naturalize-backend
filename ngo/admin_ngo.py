@@ -4,6 +4,7 @@ from backend import settings
 from events.models import Event
 from ngo.models import NGOEntity
 from user.models import UserEventInteraction
+from shared.models import Location
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
@@ -56,3 +57,4 @@ class UserEventInteractionAdmin(admin.ModelAdmin):
 ngo_admin_site.register(UserEventInteraction, UserEventInteractionAdmin)
 ngo_admin_site.register(Event)
 ngo_admin_site.register(NGOEntity)
+ngo_admin_site.register(Location)

@@ -147,7 +147,7 @@ def get_events_filtering_options(request):
 @api_view(['GET'])
 def get_event_gallery(request, event_id):
     try:
-        event = Event.objects.get(id=event_id)
+        event = Event.objects.prefetch_related('event_gallery').get(id=event_id)
 
         photos = event.event_gallery.all()
 

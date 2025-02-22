@@ -163,7 +163,7 @@ class UserStreak(models.Model):
         
         self.last_active_date = today
 
-        self.save()
+        self.save(update_fields=['current_streak', 'longest_streak', 'last_active_date'])
 
     def __str__(self):
         return f"{self.user.username} - Current Streak: {self.current_streak}, Longest Streak: {self.longest_streak}"
@@ -214,6 +214,8 @@ class UserGoal(models.Model):
             .order_by("-min_xp")
             .first()
         )
+
+        print(f'This is the changed {self.xp_accumulated}')
         if stage and stage != self.current_stage:
             self.current_stage = stage
 

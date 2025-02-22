@@ -12,11 +12,11 @@ def add_xp_to_user(user, xp_earned):
     user_goal = user.usergoal_set.filter(status=1).order_by('-xp_accumulated').first()
 
     with transaction.atomic():
-        user.total_xp += xp_earned
-        user.save()
         if user_goal:
             user_goal.xp_accumulated += xp_earned
-            user_goal.save()
+            user_goal.save(update_fields=['xp_accumulated', 'status'])
+        user.total_xp += xp_earned
+        user.save(update_fields=['total_xp', 'current_stage'])
         
 def calculate_stage_progress(total_xp, stage_min_xp, stage_max_xp, previous_stage_max_xp):
 
