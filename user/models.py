@@ -305,7 +305,8 @@ class UserEventInteraction(models.Model):
             previous = UserEventInteraction.objects.filter(pk=self.pk).only('status').first()
             self._previous_status = previous.status if previous else None
 
-        if is_new or (self.pk and hasattr(self, '_previous_status') and self._previous_status != self.status):
+        if is_new or (self.pk and hasattr(self, '_previous_status') and self._previous_status != self.status
+        and self.status != EventEnrollementStatus.COMPLETED):
             xp_earned = self.STATUS_POINTS.get(self.status, 0)
             print(f"This is xp_earned {xp_earned}")
             if xp_earned > 0:
