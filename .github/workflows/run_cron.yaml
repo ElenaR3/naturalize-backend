@@ -1,31 +1,31 @@
-name: Run Django Cron Job
+# name: Run Django Cron Job
 
-on:
-  schedule:
-    - cron: "0 0 * * *"
-  workflow_dispatch:
+# on:
+#   schedule:
+#     - cron: "0 0 * * *"
+#   workflow_dispatch:
 
-jobs:
-  build:
-    name: Run crons
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+# jobs:
+#   build:
+#     name: Run crons
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
+#       - uses: actions/setup-node@v3
+#         with:
+#           node-version: 16
 
-      - name: Install Railway
-        run: npm i -g @railway/cli
+#       - name: Install Railway
+#         run: npm i -g @railway/cli
 
-      - name: Install Python packages
-        run: railway run --service 87c26b56-e635-419a-8fc4-e5b8241f077f pip install -r requirements.txt
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+#       - name: Install Python packages
+#         run: railway run --service 87c26b56-e635-419a-8fc4-e5b8241f077f pip install -r requirements.txt
+#         env:
+#           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-      - name: Update user streaks
-        run: railway run --service 87c26b56-e635-419a-8fc4-e5b8241f077f python manage.py reset_streaks
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+#       - name: Update user streaks
+#         run: railway run --service 87c26b56-e635-419a-8fc4-e5b8241f077f python manage.py reset_streaks
+#         env:
+#           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+#           SECRET_KEY: ${{ secrets.SECRET_KEY }}
